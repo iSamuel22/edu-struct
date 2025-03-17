@@ -1,30 +1,44 @@
+
 import React, { useState } from 'react';
-import { X, LogIn } from "lucide-react";
+import { X, UserPlus } from "lucide-react";
 import { useToast } from '@/hooks/use-toast';
 
-interface LoginModalProps {
+interface RegisterModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onLogin: (username: string, password: string) => void;
-  onSwitchToRegister: () => void;
+  onRegister: (username: string, name: string, password: string) => void;
+  onSwitchToLogin: () => void;
 }
 
-const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin, onSwitchToRegister }) => {
+const RegisterModal: React.FC<RegisterModalProps> = ({ isOpen, onClose, onRegister, onSwitchToLogin }) => {
   const [username, setUsername] = useState('');
+  const [name, setName] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const { toast } = useToast();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!username.trim() || !password.trim()) {
+    
+    if (!username.trim() || !name.trim() || !password.trim()) {
       toast({
         title: "Erro",
-        description: "Usuário e senha são obrigatórios",
+        description: "Todos os campos são obrigatórios",
         variant: "destructive",
       });
       return;
     }
-    onLogin(username, password);
+
+    if (password !== confirmPassword) {
+      toast({
+        title: "Erro",
+        description: "As senhas não coincidem",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    onRegister(username, name, password);
   };
 
   if (!isOpen) return null;
@@ -33,7 +47,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin, onSwi
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
       <div className="bg-background rounded-lg w-full max-w-md shadow-xl animate-scale-in p-6">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold">Login</h2>
+          <h2 className="text-xl font-semibold">Registro</h2>
           <button
             onClick={onClose}
             className="text-muted-foreground hover:text-foreground transition-colors"
@@ -55,6 +69,18 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin, onSwi
               placeholder="Digite seu usuário"
             />
           </div>
+
+          <div>
+            <label htmlFor="name" className="input-label">Nome Completo</label>
+            <input
+              id="name"
+              type="text"
+              className="input-field"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Digite seu nome completo"
+            />
+          </div>
           
           <div>
             <label htmlFor="password" className="input-label">Senha</label>
@@ -67,23 +93,35 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin, onSwi
               placeholder="Digite sua senha"
             />
           </div>
+
+          <div>
+            <label htmlFor="confirm-password" className="input-label">Confirmar Senha</label>
+            <input
+              id="confirm-password"
+              type="password"
+              className="input-field"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder="Confirme sua senha"
+            />
+          </div>
           
           <button 
             type="submit" 
             className="btn btn-primary w-full flex items-center justify-center gap-2"
           >
-            <LogIn size={16} />
-            <span>Entrar</span>
+            <UserPlus size={16} />
+            <span>Registrar</span>
           </button>
 
           <p className="text-center text-sm text-muted-foreground">
-            Não tem uma conta?{" "}
+            Já tem uma conta?{" "}
             <button
               type="button"
-              onClick={onSwitchToRegister}
+              onClick={onSwitchToLogin}
               className="text-primary hover:underline"
             >
-              Registre-se
+              Fazer login
             </button>
           </p>
         </form>
@@ -92,4 +130,4 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin, onSwi
   );
 };
 
-export default LoginModal;
+export default RegisterModal;

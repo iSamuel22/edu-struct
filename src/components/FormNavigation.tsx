@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { Dispatch, SetStateAction } from 'react';
 import { motion } from 'framer-motion';
 import { 
   ChevronLeft, 
@@ -21,7 +20,7 @@ import {
 interface FormNavigationProps {
   steps: string[];
   currentStep: number;
-  onStepChange: (step: number) => void;
+  onStepChange: Dispatch<SetStateAction<number>>;
 }
 
 const FormNavigation: React.FC<FormNavigationProps> = ({

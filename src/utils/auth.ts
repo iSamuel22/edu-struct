@@ -27,12 +27,53 @@ export const initializeUsers = (): void => {
   }
 };
 
+// Get all users
+export const getAllUsers = (): User[] => {
+  const users = localStorage.getItem(USERS_STORAGE_KEY);
+  return users ? JSON.parse(users) : [];
+};
+
+// Register new user
+export const registerUser = (username: string, name: string, password: string): User | null => {
+  // Get existing users
+  const users = getAllUsers();
+  
+  // Check if username already exists
+  if (users.some(user => user.username === username)) {
+    return null;
+  }
+  
+  // Create new user
+  const newUser: User = {
+    id: Date.now().toString(),
+    username,
+    name
+  };
+  
+  // Add user to storage with password
+  users.push(newUser);
+  localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(users));
+  
+  // Store password separately (in real app, this would be hashed)
+  localStorage.setItem(`password_${username}`, password);
+  
+  return newUser;
+};
+
 // Authenticate user
 export const loginUser = (username: string, password: string): User | null => {
-  // For simplicity, we're using a hardcoded password check
-  // In a real application, this would involve secure authentication
+  // Get stored password
+  const storedPassword = localStorage.getItem(`password_${username}`);
+  
+  // For admin user
   if (username === 'admin' && password === 'admin123') {
     return DEFAULT_ADMIN;
+  }
+  
+  // For other users
+  if (storedPassword === password) {
+    const users = getAllUsers();
+    return users.find(user => user.username === username) || null;
   }
   
   return null;

@@ -1,57 +1,32 @@
-
 import React from 'react';
-import { X, AlertTriangle } from "lucide-react";
 
 interface DeletePlanModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onConfirmDelete: () => void;
+  onConfirm: () => void;
   planTitle: string;
 }
 
-const DeletePlanModal: React.FC<DeletePlanModalProps> = ({ 
-  isOpen, 
-  onClose, 
-  onConfirmDelete,
-  planTitle 
-}) => {
+const DeletePlanModal: React.FC<DeletePlanModalProps> = ({ isOpen, onClose, onConfirm, planTitle }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className="bg-background rounded-lg w-full max-w-md shadow-xl animate-scale-in p-6">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold flex items-center gap-2">
-            <AlertTriangle className="h-5 w-5 text-destructive" />
-            <span>Excluir Plano</span>
-          </h2>
-          <button
-            onClick={onClose}
-            className="text-muted-foreground hover:text-foreground transition-colors"
-            aria-label="Fechar"
-          >
-            <X size={20} />
-          </button>
-        </div>
-        
-        <div className="mb-6">
-          <p className="mb-2">Tem certeza que deseja excluir o plano de ensino:</p>
-          <p className="font-medium text-lg">{planTitle}</p>
-          <p className="mt-2 text-destructive text-sm">Esta ação não pode ser desfeita.</p>
-        </div>
-        
-        <div className="flex gap-3 justify-end">
-          <button
-            onClick={onClose}
-            className="btn btn-outline"
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+      <div className="bg-white p-6 rounded shadow-lg">
+        <h2 className="text-xl font-semibold mb-4">Confirmar exclusão</h2>
+        <p className="mb-4">Você tem certeza que deseja excluir o plano intitulado "{planTitle}"?</p>
+        <div className="flex justify-end space-x-4">
+          <button 
+            onClick={onClose} 
+            className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400 transition-colors"
           >
             Cancelar
           </button>
-          <button
-            onClick={onConfirmDelete}
-            className="btn bg-destructive text-white hover:bg-destructive/90"
+          <button 
+            onClick={onConfirm} 
+            className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
           >
-            Excluir
+            Confirmar
           </button>
         </div>
       </div>

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { FileText, Save, Upload, Download, FileDown, LogIn, LogOut, User, Trash2 } from "lucide-react";
 import { User as UserType } from '@/utils/auth';
@@ -12,7 +11,7 @@ interface HeaderProps {
   onLoginClick: () => void;
   onLogout: () => void;
   onDeleteClick: () => void;
-  currentUser: UserType | null;
+  currentUser: any;
   canDelete: boolean;
 }
 
