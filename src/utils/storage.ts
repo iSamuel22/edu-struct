@@ -1,4 +1,15 @@
-import { getUserFromLocalStorage } from './auth'; // Ajuste o caminho conforme necessário
+import { 
+  collection,
+  doc,
+  setDoc,
+  getDoc,
+  getDocs,
+  deleteDoc,
+  query,
+  where
+} from 'firebase/firestore';
+import { db } from '../config/firebase';
+import { auth } from '../config/firebase';
 
 // Define the structure of our teaching plan
 export interface TeachingPlan {
@@ -54,8 +65,8 @@ export interface TeachingPlan {
       complementary: string;
     };
     signatures: {
-      signatories: any;
-      date: any;
+      signatories: string;
+      date: string;
       location: string;
       professorName: string;
       coordinatorName: string;
@@ -130,62 +141,50 @@ export const createEmptyPlan = (): TeachingPlan => {
         professorName: "",
         coordinatorName: "",
         courseName: "",
-        signatories: undefined,
-        date: undefined,
+        signatories: "",
+        date: "",
         location: ""
       },
     },
   };
 };
 
-// Save a plan to localStorage
-export const savePlan = (plan: TeachingPlan): void => {
+// Save a plan to Firestore
+export const savePlan = async (plan: TeachingPlan): Promise<void> => {
   try {
-    const currentUser = getUserFromLocalStorage();
+    const currentUser = auth.currentUser;
     if (!currentUser) {
       throw new Error('No user is currently logged in');
     }
-    const userId = currentUser.id;
 
-    // Update the lastUpdated timestamp
-    plan.lastUpdated = Date.now();
-
-    // Get existing plans for the user
-    const existingPlansJSON = localStorage.getItem(`teachingPlans_${userId}`);
-    const existingPlans: TeachingPlan[] = existingPlansJSON
-      ? JSON.parse(existingPlansJSON)
-      : [];
-
-    // Check if plan already exists
-    const existingPlanIndex = existingPlans.findIndex(p => p.id === plan.id);
-
-    if (existingPlanIndex >= 0) {
-      // Update existing plan
-      existingPlans[existingPlanIndex] = plan;
-    } else {
-      // Add new plan
-      existingPlans.push(plan);
-    }
-
-    // Save updated plans
-    localStorage.setItem(`teachingPlans_${userId}`, JSON.stringify(existingPlans));
+    const planRef = doc(db, 'teachingPlans', plan.id);
+    await setDoc(planRef, {
+      ...plan,
+      userId: currentUser.uid,
+      lastUpdated: Date.now()
+    });
   } catch (error) {
     console.error('Error saving plan:', error);
-    throw new Error('Failed to save plan to local storage');
+    throw new Error('Failed to save plan to Firestore');
   }
 };
 
 // Get all saved plans
-export const getAllPlans = (): TeachingPlan[] => {
+export const getAllPlans = async (): Promise<TeachingPlan[]> => {
   try {
-    const currentUser = getUserFromLocalStorage();
+    const currentUser = auth.currentUser;
     if (!currentUser) {
-      console.error('No user is currently logged in');
-      return []; // Retorna uma lista vazia se não houver usuário logado
+      return [];
     }
-    const userId = currentUser.id;
-    const plansJSON = localStorage.getItem(`teachingPlans_${userId}`);
-    return plansJSON ? JSON.parse(plansJSON) : [];
+
+    const plansRef = collection(db, 'teachingPlans');
+    const q = query(plansRef, where('userId', '==', currentUser.uid));
+    const querySnapshot = await getDocs(q);
+    
+    return querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    })) as TeachingPlan[];
   } catch (error) {
     console.error('Error retrieving plans:', error);
     return [];
@@ -193,16 +192,23 @@ export const getAllPlans = (): TeachingPlan[] => {
 };
 
 // Get a specific plan by ID
-export const getPlanById = (id: string): TeachingPlan | null => {
+export const getPlanById = async (id: string): Promise<TeachingPlan | null> => {
   try {
-    const currentUser = getUserFromLocalStorage();
+    const currentUser = auth.currentUser;
     if (!currentUser) {
-      console.error('No user is currently logged in');
-      return null; // Retorna null se não houver usuário logado
+      return null;
     }
-    const userId = currentUser.id;
-    const plans = getAllPlans();
-    return plans.find(plan => plan.id === id) || null;
+
+    const planRef = doc(db, 'teachingPlans', id);
+    const planDoc = await getDoc(planRef);
+    
+    if (planDoc.exists() && planDoc.data().userId === currentUser.uid) {
+      return {
+        id: planDoc.id,
+        ...planDoc.data()
+      } as TeachingPlan;
+    }
+    return null;
   } catch (error) {
     console.error('Error retrieving plan:', error);
     return null;
@@ -210,18 +216,21 @@ export const getPlanById = (id: string): TeachingPlan | null => {
 };
 
 // Delete a plan
-export const deletePlan = (id: string): boolean => {
+export const deletePlan = async (id: string): Promise<boolean> => {
   try {
-    const currentUser = getUserFromLocalStorage();
+    const currentUser = auth.currentUser;
     if (!currentUser) {
-      console.error('No user is currently logged in');
-      return false; // Retorna false se não houver usuário logado
+      return false;
     }
-    const userId = currentUser.id;
-    const plans = getAllPlans();
-    const updatedPlans = plans.filter(plan => plan.id !== id);
-    localStorage.setItem(`teachingPlans_${userId}`, JSON.stringify(updatedPlans));
-    return true;
+
+    const planRef = doc(db, 'teachingPlans', id);
+    const planDoc = await getDoc(planRef);
+    
+    if (planDoc.exists() && planDoc.data().userId === currentUser.uid) {
+      await deleteDoc(planRef);
+      return true;
+    }
+    return false;
   } catch (error) {
     console.error('Error deleting plan:', error);
     return false;
