@@ -1,0 +1,119 @@
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 210 40% 98%;
+    --foreground: 222.2 84% 4.9%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+
+    --primary: 210 100% 50%;
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
+
+    --radius: 0.75rem;
+  }
+
+  * {
+    @apply border-border;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  /* Custom glassmorphism effect */
+  .glass {
+    @apply bg-white/70 backdrop-blur-md border border-white/20 shadow-sm;
+  }
+  
+  .glass-dark {
+    @apply bg-foreground/5 backdrop-blur-md border border-foreground/10 shadow-sm;
+  }
+  
+  /* Navigation styles */
+  .nav-indicator {
+    @apply w-2 h-2 rounded-full bg-muted transition-all duration-300;
+  }
+  
+  .nav-indicator.active {
+    @apply w-8 bg-primary;
+  }
+  
+  /* Input focus styles */
+  input:focus, textarea:focus, select:focus {
+    @apply outline-none ring-2 ring-primary/20 ring-offset-2 ring-offset-background;
+    transition: all 0.2s ease;
+  }
+  
+  /* Form transition styles */
+  .form-step {
+    @apply transition-all duration-500 ease-in-out;
+  }
+  
+  .form-step.entering {
+    @apply animate-slide-in;
+  }
+  
+  .form-step.exiting {
+    @apply animate-slide-out;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply px-4 py-2 rounded-md font-medium transition-all duration-200;
+  }
+  
+  .btn-primary {
+    @apply bg-primary text-primary-foreground hover:bg-primary/90;
+  }
+  
+  .btn-secondary {
+    @apply bg-secondary text-secondary-foreground hover:bg-secondary/80;
+  }
+  
+  .btn-outline {
+    @apply border border-input bg-background hover:bg-accent hover:text-accent-foreground;
+  }
+  
+  .btn-ghost {
+    @apply hover:bg-accent hover:text-accent-foreground;
+  }
+  
+  .input-field {
+    @apply w-full p-3 rounded-md border border-input bg-background;
+  }
+  
+  .input-label {
+    @apply text-sm font-medium text-muted-foreground mb-1 block;
+  }
+  
+  .form-section {
+    @apply glass p-6 rounded-xl mb-6;
+  }
+}
