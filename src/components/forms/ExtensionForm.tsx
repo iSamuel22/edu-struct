@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { usePlan } from '@/context/PlanContext';
 import FormStepWrapper from '@/components/FormStepWrapper';
@@ -50,11 +49,7 @@ const ExtensionForm: React.FC = () => {
             </div>
             
             <div>
-<<<<<<< HEAD
-              <label htmlFor="communityInvolvement" className="input-label">Envolvimento com a Comunidade</label>
-=======
               <label htmlFor="communityInvolvement" className="input-label">Envolvimento com a Comunidade Externa</label>
->>>>>>> 188eb5d (commit)
               <textarea
                 id="communityInvolvement"
                 className="input-field"

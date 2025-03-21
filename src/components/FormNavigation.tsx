@@ -1,10 +1,5 @@
-<<<<<<< HEAD
-import React, { Dispatch, SetStateAction } from 'react';
-import { motion } from 'framer-motion';
-=======
 import React, { Dispatch, SetStateAction, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
->>>>>>> 188eb5d (commit)
 import { 
   ChevronLeft, 
   ChevronRight,
@@ -19,12 +14,8 @@ import {
   MapPin,
   Calendar,
   Library,
-<<<<<<< HEAD
-  Pen
-=======
   Pen,
   Menu
->>>>>>> 188eb5d (commit)
 } from 'lucide-react';
 
 interface FormNavigationProps {
@@ -38,11 +29,8 @@ const FormNavigation: React.FC<FormNavigationProps> = ({
   currentStep,
   onStepChange
 }) => {
-<<<<<<< HEAD
-=======
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
->>>>>>> 188eb5d (commit)
   const getStepIcon = (step: string, index: number) => {
     const icons = {
       "Identificação": <FileText size={16} />,
@@ -58,72 +46,10 @@ const FormNavigation: React.FC<FormNavigationProps> = ({
       "Bibliografia": <Library size={16} />,
       "Assinaturas": <Pen size={16} />
     };
-    
-<<<<<<< HEAD
-    // Using the step name to find the icon, or default to index+1
-=======
->>>>>>> 188eb5d (commit)
     const stepName = Object.keys(icons).find(key => step.includes(key));
     return stepName ? icons[stepName as keyof typeof icons] : index + 1;
   };
 
-<<<<<<< HEAD
-  return (
-    <div className="glass fixed bottom-4 left-1/2 transform -translate-x-1/2 p-2 rounded-full shadow-lg z-20">
-      <div className="flex items-center gap-1">
-        <button
-          onClick={() => onStepChange(Math.max(0, currentStep - 1))}
-          disabled={currentStep === 0}
-          className="p-2 rounded-full disabled:opacity-50 text-muted-foreground hover:text-primary disabled:hover:text-muted-foreground transition-colors"
-          aria-label="Etapa anterior"
-        >
-          <ChevronLeft size={16} />
-        </button>
-        
-        <div className="flex items-center gap-1 px-2 overflow-x-auto hide-scrollbar">
-          {steps.map((step, index) => (
-            <button
-              key={index}
-              onClick={() => onStepChange(index)}
-              className={`relative flex items-center justify-center p-2 rounded-full transition-all duration-200 ${
-                currentStep === index
-                  ? 'bg-primary text-primary-foreground'
-                  : 'hover:bg-accent text-muted-foreground'
-              }`}
-              aria-label={`Ir para ${step}`}
-              title={step}
-            >
-              {getStepIcon(step, index)}
-              
-              {/* Pill indicator for mobile */}
-              <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-primary transform scale-0 transition-transform duration-200 md:hidden"
-                style={{ transform: currentStep === index ? 'scale(1)' : 'scale(0)' }}
-              ></span>
-              
-              {/* Step name for larger screens */}
-              <span className="ml-1 hidden md:inline text-xs whitespace-nowrap">
-                {step}
-              </span>
-            </button>
-          ))}
-        </div>
-        
-        <button
-          onClick={() => onStepChange(Math.min(steps.length - 1, currentStep + 1))}
-          disabled={currentStep === steps.length - 1}
-          className="p-2 rounded-full disabled:opacity-50 text-muted-foreground hover:text-primary disabled:hover:text-muted-foreground transition-colors"
-          aria-label="Próxima etapa"
-        >
-          <ChevronRight size={16} />
-        </button>
-      </div>
-    </div>
-  );
-};
-
-export default FormNavigation;
-=======
-  // Mobile step indicator text
   const getMobileStepText = () => {
     return `${currentStep + 1}/${steps.length}`;
   };
@@ -133,7 +59,6 @@ export default FormNavigation;
       {/* Mobile Navigation */}
       <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 md:hidden">
         <div className="flex flex-col items-center">
-          {/* Full Step List (Popup) */}
           <AnimatePresence>
             {isMenuOpen && (
               <motion.div
@@ -171,7 +96,6 @@ export default FormNavigation;
             )}
           </AnimatePresence>
 
-          {/* Mobile Controls */}
           <div className="flex items-center gap-2 bg-white rounded-full shadow-lg p-2">
             <button
               onClick={() => onStepChange(Math.max(0, currentStep - 1))}
@@ -254,4 +178,3 @@ export default FormNavigation;
 };
 
 export default FormNavigation;
->>>>>>> 188eb5d (commit)
