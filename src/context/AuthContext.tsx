@@ -1,15 +1,13 @@
-
 import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import { 
   User, 
-  initializeUsers, 
   loginUser, 
   registerUser, 
-  saveUserToLocalStorage, 
-  getUserFromLocalStorage,
   logoutUser as logoutUserUtil
 } from '@/utils/auth';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '../hooks/use-toast';
+import { auth } from '@/config/firebase';
+import { onAuthStateChanged } from 'firebase/auth';
 
 type AuthContextType = {
   currentUser: User | null;
@@ -34,12 +32,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
 
   useEffect(() => {
-    initializeUsers();
-    
-    const user = getUserFromLocalStorage();
-    if (user) {
-      setCurrentUser(user);
-    }
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      if (firebaseUser) {
+        setCurrentUser({
+          id: firebaseUser.uid,
+          username: firebaseUser.email || '',
+          name: firebaseUser.displayName || firebaseUser.email || ''
+        });
+      } else {
+        setCurrentUser(null);
+      }
+    });
+
+    return () => unsubscribe();
   }, []);
 
   const handleLogin = () => {
@@ -63,10 +68,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoginModalOpen(false);
   };
 
-  const performLogin = (username: string, password: string) => {
-    const user = loginUser(username, password);
+  const performLogin = async (username: string, password: string) => {
+    const user = await loginUser(username, password);
     if (user) {
-      saveUserToLocalStorage(user);
       setCurrentUser(user);
       setIsLoginModalOpen(false);
       toast({
@@ -82,20 +86,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const performRegistration = (username: string, name: string, password: string) => {
-    const user = registerUser(username, name, password);
-    if (user) {
-      saveUserToLocalStorage(user);
-      setCurrentUser(user);
-      setIsRegisterModalOpen(false);
-      toast({
-        title: "Registro realizado",
-        description: `Bem-vindo, ${user.name}!`,
-      });
-    } else {
+  const performRegistration = async (username: string, name: string, password: string) => {
+    try {
+      const user = await registerUser(username, password, name);
+      if (user) {
+        setCurrentUser(user);
+        setIsRegisterModalOpen(false);
+        toast({
+          title: "Registro realizado",
+          description: `Bem-vindo, ${user.name}!`,
+        });
+      }
+    } catch (error: any) {
+      console.error('Registration error in context:', error);
       toast({
         title: "Erro no registro",
-        description: "Este usuário já existe.",
+        description: error.message || "Ocorreu um erro ao tentar registrar. Tente novamente.",
         variant: "destructive",
       });
     }

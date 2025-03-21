@@ -1,7 +1,7 @@
-
-import React, { createContext, useState, useContext, ReactNode } from 'react';
+import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import { TeachingPlan, createEmptyPlan, savePlan, getAllPlans, deletePlan } from '@/utils/storage';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '../hooks/use-toast';
+import { exportAsPdf, exportAsTxt } from '@/utils/export';
 
 type PlanContextType = {
   plan: TeachingPlan;
@@ -18,8 +18,8 @@ type PlanContextType = {
   confirmDeletePlan: () => void;
   handleExportPlan: () => void;
   handleExportPlanAsPdf: () => void;
-  updateField: (path: string, value: any) => void;
-  addItemToArray: (path: string, item: any) => void;
+  updateField: (path: string, value: unknown) => void;
+  addItemToArray: (path: string, item: unknown) => void;
   removeItemFromArray: (path: string, index: number) => void;
   canDeletePlan: boolean;
 };
@@ -30,7 +30,15 @@ export function PlanProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
   const [plan, setPlan] = useState<TeachingPlan>(createEmptyPlan());
   const [currentStep, setCurrentStep] = useState(0);
-  const [savedPlans, setSavedPlans] = useState<TeachingPlan[]>(getAllPlans());
+  const [savedPlans, setSavedPlans] = useState<TeachingPlan[]>([]);
+  
+  useEffect(() => {
+    const loadSavedPlans = async () => {
+      const plans = await getAllPlans();
+      setSavedPlans(plans);
+    };
+    loadSavedPlans();
+  }, []);
   
   const canDeletePlan = plan.id !== createEmptyPlan().id && 
                         savedPlans.some(savedPlan => savedPlan.id === plan.id);
@@ -46,18 +54,18 @@ export function PlanProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const handleSavePlan = () => {
+  const handleSavePlan = async () => {
     try {
       if (plan.title === "Novo Plano de Ensino") {
         const newTitle = prompt("Digite um título para o plano:", plan.title);
         if (newTitle) {
           setPlan(prev => ({ ...prev, title: newTitle }));
-          savePlan({ ...plan, title: newTitle });
+          await savePlan({ ...plan, title: newTitle });
         } else {
-          savePlan(plan);
+          await savePlan(plan);
         }
       } else {
-        savePlan(plan);
+        await savePlan(plan);
       }
       
       toast({
@@ -65,7 +73,8 @@ export function PlanProvider({ children }: { children: ReactNode }) {
         description: "Seu plano de ensino foi salvo com sucesso.",
       });
       
-      setSavedPlans(getAllPlans());
+      const plans = await getAllPlans();
+      setSavedPlans(plans);
     } catch (error) {
       toast({
         title: "Erro ao salvar",
@@ -75,8 +84,9 @@ export function PlanProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const handleLoadPlan = () => {
-    setSavedPlans(getAllPlans());
+  const handleLoadPlan = async () => {
+    const plans = await getAllPlans();
+    setSavedPlans(plans);
   };
 
   const handleSelectPlan = (selectedPlan: TeachingPlan) => {
@@ -90,7 +100,6 @@ export function PlanProvider({ children }: { children: ReactNode }) {
 
   const handleExportPlan = () => {
     try {
-      const { exportAsTxt } = require('@/utils/export');
       exportAsTxt(plan);
       toast({
         title: "Plano exportado",
@@ -107,7 +116,6 @@ export function PlanProvider({ children }: { children: ReactNode }) {
 
   const handleExportPlanAsPdf = () => {
     try {
-      const { exportAsPdf } = require('@/utils/export');
       exportAsPdf(plan);
       toast({
         title: "Plano exportado",
@@ -126,7 +134,7 @@ export function PlanProvider({ children }: { children: ReactNode }) {
     // This will be handled in the Index component to show the modal
   };
 
-  const confirmDeletePlan = () => {
+  const confirmDeletePlan = async () => {
     try {
       const success = deletePlan(plan.id);
       if (success) {
@@ -136,7 +144,7 @@ export function PlanProvider({ children }: { children: ReactNode }) {
         });
         
         setPlan(createEmptyPlan());
-        setSavedPlans(getAllPlans());
+        setSavedPlans(await getAllPlans());
       } else {
         throw new Error("Falha ao excluir o plano");
       }
@@ -149,17 +157,17 @@ export function PlanProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const updateField = (path: string, value: any) => {
+  const updateField = (path: string, value: unknown) => {
     setPlan(prevPlan => {
       const newPlan = { ...prevPlan };
       
       const pathParts = path.split('.');
       
-      let currentObj = newPlan as any;
+      let currentObj = newPlan as Record<string, unknown>;
       for (let i = 0; i < pathParts.length - 1; i++) {
         const part = pathParts[i];
         if (!currentObj[part]) currentObj[part] = {};
-        currentObj = currentObj[part];
+        currentObj = currentObj[part] as Record<string, unknown>;
       }
       
       const fieldName = pathParts[pathParts.length - 1];
@@ -169,13 +177,13 @@ export function PlanProvider({ children }: { children: ReactNode }) {
     });
   };
 
-  const addItemToArray = (path: string, item: any) => {
+  const addItemToArray = (path: string, item: unknown) => {
     setPlan(prevPlan => {
       const newPlan = { ...prevPlan };
       
       const pathParts = path.split('.');
       
-      let currentObj = newPlan as any;
+      let currentObj = newPlan as Record<string, unknown>;
       for (let i = 0; i < pathParts.length; i++) {
         const part = pathParts[i];
         if (!currentObj[part]) {
@@ -185,10 +193,11 @@ export function PlanProvider({ children }: { children: ReactNode }) {
             currentObj[part] = {};
           }
         }
-        currentObj = currentObj[part];
+        currentObj = currentObj[part] as Record<string, unknown>;
       }
       
-      currentObj.push(item);
+      const array = currentObj as unknown as unknown[];
+      array.push(item);
       
       return newPlan;
     });
@@ -200,13 +209,14 @@ export function PlanProvider({ children }: { children: ReactNode }) {
       
       const pathParts = path.split('.');
       
-      let currentObj = newPlan as any;
+      let currentObj = newPlan as Record<string, unknown>;
       for (let i = 0; i < pathParts.length; i++) {
         const part = pathParts[i];
-        currentObj = currentObj[part];
+        currentObj = currentObj[part] as Record<string, unknown>;
       }
       
-      currentObj.splice(index, 1);
+      const array = currentObj as unknown as unknown[];
+      array.splice(index, 1);
       
       return newPlan;
     });

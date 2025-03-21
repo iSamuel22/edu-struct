@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { usePlan } from '@/context/PlanContext';
 import FormStepWrapper from '@/components/FormStepWrapper';
@@ -22,6 +21,7 @@ const IdentificationForm: React.FC = () => {
               className="input-field"
               value={plan.data.identification.courseName}
               onChange={(e) => updateField('data.identification.courseName', e.target.value)}
+              placeholder="Ex: Programação Web"
             />
           </div>
           
@@ -33,6 +33,7 @@ const IdentificationForm: React.FC = () => {
               className="input-field"
               value={plan.data.identification.courseAbbreviation}
               onChange={(e) => updateField('data.identification.courseAbbreviation', e.target.value)}
+              placeholder="Ex: PROG-WEB"
             />
           </div>
         </div>
@@ -46,6 +47,7 @@ const IdentificationForm: React.FC = () => {
               className="input-field"
               value={plan.data.identification.professorName}
               onChange={(e) => updateField('data.identification.professorName', e.target.value)}
+              placeholder="Ex: João da Silva"
             />
           </div>
           
@@ -57,6 +59,7 @@ const IdentificationForm: React.FC = () => {
               className="input-field"
               value={plan.data.identification.siapeCode}
               onChange={(e) => updateField('data.identification.siapeCode', e.target.value)}
+              placeholder="Ex: 1234567"
             />
           </div>
         </div>
@@ -65,36 +68,36 @@ const IdentificationForm: React.FC = () => {
           <div>
             <label htmlFor="totalHours" className="input-label">Carga Horária Total</label>
             <input
-              type="number"
+              type="text"
               id="totalHours"
               className="input-field"
               value={plan.data.identification.totalHours}
-              onChange={(e) => updateField('data.identification.totalHours', Number(e.target.value))}
-              min="0"
+              onChange={(e) => updateField('data.identification.totalHours', e.target.value)}
+              placeholder="EX: 67h, 80h/a"
             />
           </div>
           
           <div>
             <label htmlFor="weeklyHours" className="input-label">Carga Horária Semanal</label>
             <input
-              type="number"
+              type="text"
               id="weeklyHours"
               className="input-field"
               value={plan.data.identification.weeklyHours}
-              onChange={(e) => updateField('data.identification.weeklyHours', Number(e.target.value))}
-              min="0"
+              onChange={(e) => updateField('data.identification.weeklyHours', e.target.value)}
+              placeholder="Ex: 4h/a"
             />
           </div>
           
           <div>
             <label htmlFor="inPersonHours" className="input-label">Carga Horária Presencial</label>
             <input
-              type="number"
+              type="text"
               id="inPersonHours"
               className="input-field"
               value={plan.data.identification.inPersonHours}
-              onChange={(e) => updateField('data.identification.inPersonHours', Number(e.target.value))}
-              min="0"
+              onChange={(e) => updateField('data.identification.inPersonHours', e.target.value)}
+              placeholder="Ex: 45 horas"
             />
           </div>
         </div>
@@ -103,24 +106,24 @@ const IdentificationForm: React.FC = () => {
           <div>
             <label htmlFor="theoreticalHours" className="input-label">Carga Horária Teórica</label>
             <input
-              type="number"
+              type="text"
               id="theoreticalHours"
               className="input-field"
               value={plan.data.identification.theoreticalHours}
-              onChange={(e) => updateField('data.identification.theoreticalHours', Number(e.target.value))}
-              min="0"
+              onChange={(e) => updateField('data.identification.theoreticalHours', e.target.value)}
+              placeholder="Ex: 30 horas"
             />
           </div>
           
           <div>
             <label htmlFor="practicalHours" className="input-label">Carga Horária Prática</label>
             <input
-              type="number"
+              type="text"
               id="practicalHours"
               className="input-field"
               value={plan.data.identification.practicalHours}
-              onChange={(e) => updateField('data.identification.practicalHours', Number(e.target.value))}
-              min="0"
+              onChange={(e) => updateField('data.identification.practicalHours', e.target.value)}
+              placeholder="Ex: 30 horas"
             />
           </div>
         </div>

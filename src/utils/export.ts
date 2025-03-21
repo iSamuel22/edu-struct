@@ -43,6 +43,8 @@ export const exportAsTxt = (plan: TeachingPlan): void => {
     content += `----------------------------------\n`;
     content += `Possui atividades de extensão: ${data.extension.hasExtension ? "Sim" : "Não"}\n`;
     if (data.extension.hasExtension) {
+      content += `Tipo de Atividade: ${data.extension.type}\n`;
+      content += `Resumo: ${data.extension.summary}\n`;
       content += `Justificativa: ${data.extension.justification}\n`;
       content += `Objetivos: ${data.extension.objectives}\n`;
       content += `Envolvimento com a comunidade: ${data.extension.communityInvolvement}\n`;
@@ -110,9 +112,11 @@ export const exportAsTxt = (plan: TeachingPlan): void => {
     // Signatures
     content += `12. ASSINATURAS\n`;
     content += `----------------------------------\n`;
-    content += `Professor: ${data.signatures.professorName}\n`;
-    content += `Coordenador: ${data.signatures.coordinatorName}\n`;
-    content += `Curso: ${data.signatures.courseName}\n\n`;
+    content += `Professor: ${data.signatures.professorSignature}\n`;
+    content += `Coordenador: ${data.signatures.coordinatorSignature}\n`;
+    content += `Componente Curricular: ${data.signatures.componentName}\n`;
+    content += `Curso: ${data.signatures.courseName}\n`;
+    content += `Data: ${data.signatures.date}\n\n`;
     
     content += `Documento gerado em: ${new Date().toLocaleDateString('pt-BR')}\n`;
     
@@ -209,6 +213,8 @@ export const exportAsPdf = (plan: TeachingPlan): void => {
     yPosition = addSectionHeading('5. ATIVIDADES CURRICULARES DE EXTENSÃO', yPosition + lineHeight);
     yPosition = addText(`Possui atividades de extensão: ${data.extension.hasExtension ? "Sim" : "Não"}`, yPosition + lineHeight);
     if (data.extension.hasExtension) {
+      yPosition = addText(`Tipo de Atividade: ${data.extension.type}`, yPosition);
+      yPosition = addText(`Resumo: ${data.extension.summary}`, yPosition);
       yPosition = addText(`Justificativa: ${data.extension.justification}`, yPosition);
       yPosition = addText(`Objetivos: ${data.extension.objectives}`, yPosition);
       yPosition = addText(`Envolvimento com a comunidade: ${data.extension.communityInvolvement}`, yPosition);
@@ -263,9 +269,11 @@ export const exportAsPdf = (plan: TeachingPlan): void => {
     
     // 12. Signatures
     yPosition = addSectionHeading('12. ASSINATURAS', yPosition + lineHeight);
-    yPosition = addText(`Professor: ${data.signatures.professorName}`, yPosition + lineHeight);
-    yPosition = addText(`Coordenador: ${data.signatures.coordinatorName}`, yPosition);
+    yPosition = addText(`Professor: ${data.signatures.professorSignature}`, yPosition + lineHeight);
+    yPosition = addText(`Coordenador: ${data.signatures.coordinatorSignature}`, yPosition);
+    yPosition = addText(`Componente Curricular: ${data.signatures.componentName}`, yPosition);
     yPosition = addText(`Curso: ${data.signatures.courseName}`, yPosition);
+    yPosition = addText(`Data: ${data.signatures.date}`, yPosition);
     
     // Date generated
     yPosition = addText(`Documento gerado em: ${new Date().toLocaleDateString('pt-BR')}`, yPosition + lineHeight * 2);

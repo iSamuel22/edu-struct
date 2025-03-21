@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { X, UserPlus } from "lucide-react";
 import { useToast } from '@/hooks/use-toast';
@@ -24,6 +23,24 @@ const RegisterModal: React.FC<RegisterModalProps> = ({ isOpen, onClose, onRegist
       toast({
         title: "Erro",
         description: "Todos os campos são obrigatórios",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!username.includes('@')) {
+      toast({
+        title: "Erro",
+        description: "O usuário deve ser um email válido (exemplo@dominio.com)",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (password.length < 6) {
+      toast({
+        title: "Erro",
+        description: "A senha deve ter pelo menos 6 caracteres",
         variant: "destructive",
       });
       return;
