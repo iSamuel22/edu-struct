@@ -1,4 +1,3 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -115,5 +114,24 @@
   
   .form-section {
     @apply glass p-6 rounded-xl mb-6;
+  }
+}
+
+/* Adicionando regras de mídia query para responsividade */
+@media (max-width: 768px) {
+  .btn {
+    @apply px-3 py-2 text-sm;
+  }
+
+  .input-field {
+    @apply p-2;
+  }
+
+  .form-section {
+    @apply p-4 mb-4;
+  }
+
+  .input-label {
+    @apply text-xs mb-0.5;
   }
 }
