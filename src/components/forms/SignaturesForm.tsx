@@ -62,14 +62,14 @@ const SignaturesForm: React.FC = () => {
         </div>
         
         <div>
-          <label htmlFor="date" className="input-label">Data</label>
+          <label htmlFor="date" className="input-label">Ano</label>
           <input
             type="text"
             id="date"
             className="input-field"
             value={plan.data.signatures.date}
             onChange={(e) => updateField('data.signatures.date', e.target.value)}
-            placeholder="Ex: 15 de maio de 2023"
+            placeholder="Ex: 2024.2"
           />
         </div>
         
