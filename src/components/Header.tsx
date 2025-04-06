@@ -85,13 +85,7 @@ const Header: React.FC<HeaderProps> = ({
               </button>
               
               <div className="absolute right-0 mt-1 w-40 bg-background shadow-lg rounded-md overflow-hidden opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-                <button 
-                  onClick={onExportPlan}
-                  className="w-full px-4 py-2 text-left text-sm hover:bg-accent flex items-center gap-2"
-                >
-                  <FileDown className="h-4 w-4" />
-                  <span>TXT</span>
-                </button>
+                
                 <button 
                   onClick={onExportPlanAsPdf}
                   className="w-full px-4 py-2 text-left text-sm hover:bg-accent flex items-center gap-2"

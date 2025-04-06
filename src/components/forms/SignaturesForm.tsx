@@ -63,15 +63,6 @@ const SignaturesForm: React.FC = () => {
 
         <div className="pt-6 flex flex-col sm:flex-row gap-4">
           <button
-            onClick={handleExportPlan}
-            className="btn btn-outline flex items-center justify-center gap-2"
-            type="button"
-          >
-            <FileDown size={16} />
-            <span>Exportar como TXT</span>
-          </button>
-          
-          <button
             onClick={handleExportPlanAsPdf}
             className="btn btn-primary flex items-center justify-center gap-2"
             type="button"
