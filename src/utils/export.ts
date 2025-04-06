@@ -36,7 +36,6 @@ export const exportAsPdf = (plan: TeachingPlan): void => {
     const checkPageBreak = (y: number, spaceNeeded = 10) => {
       if (y + spaceNeeded > 280) {
         doc.addPage();
-        addHeader(); // Adiciona cabeçalho em novas páginas
         return 30;
       }
       return y;
@@ -57,9 +56,9 @@ export const exportAsPdf = (plan: TeachingPlan): void => {
 
     // Informações do curso (centralizadas)
     doc.setFontSize(10);
-    doc.text(`Curso: ${data.identification.courseName}`, 105, yPosition, { align: 'center' });
+    doc.text(`Curso: ${data.signatures.courseName}`, 105, yPosition, { align: 'center' });
     yPosition += 5;
-    doc.text(`Eixo Tecnológico Gestão e Negócios`, 105, yPosition + 5, { align: 'center' });
+    doc.text(`Eixo Tecnológico: ${data.identification.eixo}`, 105, yPosition + 5, { align: 'center' });
     yPosition += 5;
     doc.text(`Ano: ${plan.data.signatures.date}`, 105, yPosition + 10, { align: 'center' });
     yPosition += 20; // Aumentado de 20 para 30 para evitar sobreposição
@@ -75,7 +74,7 @@ export const exportAsPdf = (plan: TeachingPlan): void => {
           colSpan: 2,
           styles: { 
             fontSize: 12,
-            fontStyle: 'bold',
+            fontStyle: 'bold' as const,
             fillColor: [230, 230, 230],
             halign: 'center',
             lineColor: [0, 0, 0],
@@ -84,12 +83,11 @@ export const exportAsPdf = (plan: TeachingPlan): void => {
         }],
         ['Componente Curricular', data.identification.courseName || '-'],
         ['Abreviatura', data.identification.courseAbbreviation || '-'],
-        ['Carga horária presencial', `${data.identification.inPersonHours}h/a` || '0h/a'],
-        ['', '0h, 0h/a, 0%'], // Linha adicional conforme modelo
+        ['Carga horária presencial', data.identification.inPersonHours ? `${data.identification.inPersonHours}h/a` : '0h/a'],
+        ['Carga horária a distância', data.identification.distanceHours ? `${data.identification.distanceHours}h/a` : '0h/a'],
         ['Carga horária de atividades teóricas', data.identification.theoreticalHours ? `${data.identification.theoreticalHours}h/a` : '-'],
         ['Carga horária de atividades práticas', data.identification.practicalHours ? `${data.identification.practicalHours}h/a` : '-'],
-        ['Carga horária de atividades de Extensão', data.identification.extensionHours ? `${data.identification.extensionHours}h/a` : '-'],
-        ['Carga horária total', `${data.identification.totalHours}h/a` || '0h/a'],
+        ['Carga horária total', data.identification.totalHours ? `${data.identification.totalHours}h/a` : '0h/a'],
         ['Carga horária/Aula Semanal', data.identification.weeklyHours ? `${data.identification.weeklyHours}h00min/ ${data.identification.weeklyHours}h/a` : '0h00min/ 0h/a'],
       ],
       margin: { left: marginLeft },
@@ -111,7 +109,7 @@ export const exportAsPdf = (plan: TeachingPlan): void => {
         lineWidth: 0.5
       }
     });
-    yPosition = (doc as any).lastAutoTable.finalY + 10; // Espaço após a tabela
+    yPosition = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 10; // Espaço após a tabela
     yPosition += 10; // Espaço adicional entre tópicos
 
     // 2. EMENTA (Tabela única)
@@ -125,7 +123,7 @@ export const exportAsPdf = (plan: TeachingPlan): void => {
           colSpan: 2,
           styles: { 
             fontSize: 12,
-            fontStyle: 'bold',
+            fontStyle: 'bold' as const,
             fillColor: [230, 230, 230],
             halign: 'center',
             lineColor: [0, 0, 0],
@@ -167,7 +165,7 @@ export const exportAsPdf = (plan: TeachingPlan): void => {
           colSpan: 2,
           styles: { 
             fontSize: 12,
-            fontStyle: 'bold',
+            fontStyle: 'bold' as const,
             fillColor: [230, 230, 230],
             halign: 'center',
             lineColor: [0, 0, 0],
@@ -209,7 +207,7 @@ export const exportAsPdf = (plan: TeachingPlan): void => {
           colSpan: 2,
           styles: { 
             fontSize: 12,
-            fontStyle: 'bold',
+            fontStyle: 'bold' as const,
             fillColor: [230, 230, 230],
             halign: 'center',
             lineColor: [0, 0, 0],
@@ -251,7 +249,7 @@ export const exportAsPdf = (plan: TeachingPlan): void => {
           colSpan: 2,
           styles: { 
             fontSize: 12,
-            fontStyle: 'bold',
+            fontStyle: 'bold' as const,
             fillColor: [230, 230, 230],
             halign: 'center',
             lineColor: [0, 0, 0],
@@ -298,7 +296,7 @@ export const exportAsPdf = (plan: TeachingPlan): void => {
           colSpan: 3,
           styles: { 
             fontSize: 12,
-            fontStyle: 'bold',
+            fontStyle: 'bold' as const,
             fillColor: [230, 230, 230],
             halign: 'center',
             lineColor: [0, 0, 0],
@@ -351,7 +349,7 @@ export const exportAsPdf = (plan: TeachingPlan): void => {
           colSpan: 2,
           styles: { 
             fontSize: 12,
-            fontStyle: 'bold',
+            fontStyle: 'bold' as const,
             fillColor: [230, 230, 230],
             halign: 'center',
             lineColor: [0, 0, 0],
@@ -393,7 +391,7 @@ export const exportAsPdf = (plan: TeachingPlan): void => {
           colSpan: 2,
           styles: { 
             fontSize: 12,
-            fontStyle: 'bold',
+            fontStyle: 'bold' as const,
             fillColor: [230, 230, 230],
             halign: 'center',
             lineColor: [0, 0, 0],
@@ -435,7 +433,7 @@ export const exportAsPdf = (plan: TeachingPlan): void => {
           colSpan: 3,
           styles: { 
             fontSize: 12,
-            fontStyle: 'bold',
+            fontStyle: 'bold' as const,
             fillColor: [230, 230, 230],
             halign: 'center',
             lineColor: [0, 0, 0],
@@ -488,7 +486,7 @@ export const exportAsPdf = (plan: TeachingPlan): void => {
           colSpan: 2,
           styles: { 
             fontSize: 12,
-            fontStyle: 'bold',
+            fontStyle: 'bold' as const,
             fillColor: [230, 230, 230],
             halign: 'center',
             lineColor: [0, 0, 0],
@@ -547,7 +545,7 @@ export const exportAsPdf = (plan: TeachingPlan): void => {
           colSpan: 2,
           styles: { 
             fontSize: 12,
-            fontStyle: 'bold',
+            fontStyle: 'bold' as const,
             fillColor: [230, 230, 230],
             halign: 'center',
             lineColor: [0, 0, 0],
@@ -581,15 +579,15 @@ export const exportAsPdf = (plan: TeachingPlan): void => {
     // 12. ASSINATURAS (Layout em linha)
     yPosition = checkPageBreak(yPosition, 30);
     doc.setFontSize(10);
-    doc.text("Nome do Professor: ___________________________", marginLeft, yPosition);
+    doc.text(`${data.signatures.professorSignature}`, marginLeft, yPosition);
     doc.text("Professor", marginLeft, yPosition + 10);
     
-    doc.text("Nome do Coordenador: ___________________________", 105, yPosition);
+    doc.text(data.signatures.coordinatorSignature, 105, yPosition);
     doc.text("Coordenador", 105, yPosition + 10);
     
     yPosition += 20;
-    doc.text(`Componente Curricular: ${data.signatures.componentName || ''}`, marginLeft, yPosition);
-    doc.text(`Curso: ${data.signatures.courseName || ''}`, marginLeft, yPosition + 10);
+    doc.text(`${data.identification.courseName || ''}`, marginLeft, yPosition);
+    doc.text(`${data.signatures.courseName || ''}`, 105, yPosition);
 
     // Data de geração
     doc.text(`Documento gerado em: ${new Date().toLocaleDateString('pt-BR')}`, marginLeft, 280);

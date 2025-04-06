@@ -38,18 +38,6 @@ const SignaturesForm: React.FC = () => {
         </div>
 
         <div>
-          <label htmlFor="componentName" className="input-label">Nome do Componente Curricular</label>
-          <input
-            type="text"
-            id="componentName"
-            className="input-field"
-            value={plan.data.signatures.componentName}
-            onChange={(e) => updateField('data.signatures.componentName', e.target.value)}
-            placeholder="Nome do componente curricular"
-          />
-        </div>
-
-        <div>
           <label htmlFor="courseName" className="input-label">Nome do Curso</label>
           <input
             type="text"
@@ -72,7 +60,7 @@ const SignaturesForm: React.FC = () => {
             placeholder="Ex: 2024.2"
           />
         </div>
-        
+
         <div className="pt-6 flex flex-col sm:flex-row gap-4">
           <button
             onClick={handleExportPlan}

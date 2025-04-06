@@ -28,6 +28,8 @@ export interface TeachingPlan {
       theoreticalHours: string;
       practicalHours: string;
       inPersonHours: string;
+      eixo: string;
+      distanceHours: string;
     };
     syllabus: string;
     objectives: string;
@@ -94,6 +96,8 @@ export const createEmptyPlan = (): TeachingPlan => {
         theoreticalHours: "",
         practicalHours: "",
         inPersonHours: "",
+        eixo: "",
+        distanceHours: ""
       },
       syllabus: "",
       objectives: "",

@@ -127,6 +127,33 @@ const IdentificationForm: React.FC = () => {
             />
           </div>
         </div>
+
+        <div>
+          <label htmlFor="eixo" className="input-label">Eixo</label>
+          <input
+            type="text"
+            id="eixo"
+            className="input-field"
+            value={plan.data.identification.eixo}
+            onChange={(e) => updateField('data.identification.eixo', e.target.value)}
+            placeholder="Ex: Gestão e Negócios"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="distanceHours" className="input-label">Carga Horária a Distância</label>
+          <input
+            type="text"
+            id="distanceHours"
+            className="input-field"
+            value={plan.data.identification.distanceHours}
+            onChange={(e) => updateField('data.identification.distanceHours', e.target.value)}
+            placeholder="Ex: 20 horas"
+          />
+          <p className="text-sm text-muted-foreground mt-1">
+            Carga horária a distância (Caso o curso seja presencial, esse campo só deve ser preenchido se essa carga horária estiver prevista em PPC. A carga horária a distância deve observar o limite máximo previsto na legislação vigente referente a carga horária total do curso.)
+          </p>
+        </div>
       </div>
     </FormStepWrapper>
   );
