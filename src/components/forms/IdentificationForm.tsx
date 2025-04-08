@@ -102,7 +102,7 @@ const IdentificationForm: React.FC = () => {
           </div>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
           <div>
             <label htmlFor="theoreticalHours" className="input-label">Carga Horária Teórica</label>
             <input
@@ -124,6 +124,18 @@ const IdentificationForm: React.FC = () => {
               value={plan.data.identification.practicalHours}
               onChange={(e) => updateField('data.identification.practicalHours', e.target.value)}
               placeholder="Ex: 30 horas"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="extensionHours" className="input-label">Carga Horária de Extensão</label>
+            <input
+              type="text"
+              id="extensionHours"
+              className="input-field"
+              value={plan.data.identification.extensionHours}
+              onChange={(e) => updateField('data.identification.extensionHours', e.target.value)}
+              placeholder="Ex: 10h/a"
             />
           </div>
         </div>
@@ -148,7 +160,7 @@ const IdentificationForm: React.FC = () => {
             className="input-field"
             value={plan.data.identification.distanceHours}
             onChange={(e) => updateField('data.identification.distanceHours', e.target.value)}
-            placeholder="Ex: 20 horas"
+            placeholder="Ex: 20 h/a"
           />
           <p className="text-sm text-muted-foreground mt-1">
             Carga horária a distância (Caso o curso seja presencial, esse campo só deve ser preenchido se essa carga horária estiver prevista em PPC. A carga horária a distância deve observar o limite máximo previsto na legislação vigente referente a carga horária total do curso.)
