@@ -1,6 +1,6 @@
 import React, { Dispatch, SetStateAction, useEffect, useState, useRef } from 'react';
-import { 
-  ChevronLeft, 
+import {
+  ChevronLeft,
   ChevronRight,
   FileText,
   BookOpen,
@@ -47,7 +47,7 @@ const FormNavigation: React.FC<FormNavigationProps> = ({
       "Bibliografia": <Library size={16} />,
       "Assinaturas": <Pen size={16} />
     };
-    
+
     // Using the step name to find the icon, or default to index+1
     const stepName = Object.keys(icons).find(key => step.includes(key));
     return stepName ? icons[stepName as keyof typeof icons] : index + 1;
@@ -56,31 +56,6 @@ const FormNavigation: React.FC<FormNavigationProps> = ({
   const handleStepChange = (step: number) => {
     onStepChange(step);
     window.scrollTo(0, 0);
-    
-    // Scroll the navigation to show the current step
-    setTimeout(() => {
-      scrollToCurrentStep();
-    }, 100);
-  };
-
-  const scrollToCurrentStep = () => {
-    if (navRef.current) {
-      const navEl = navRef.current;
-      const activeEl = navEl.querySelector(`[data-step="${currentStep}"]`);
-      
-      if (activeEl) {
-        // Calculate scrolling position to center the active element
-        const centerPosition = activeEl.getBoundingClientRect().left - 
-                              navEl.getBoundingClientRect().left + 
-                              (activeEl as HTMLElement).offsetWidth / 2 - 
-                              navEl.offsetWidth / 2;
-        
-        navEl.scrollTo({
-          left: centerPosition,
-          behavior: 'smooth'
-        });
-      }
-    }
   };
 
   // Check if we need to show scroll arrows
@@ -94,37 +69,61 @@ const FormNavigation: React.FC<FormNavigationProps> = ({
 
     checkScrollable();
     window.addEventListener('resize', checkScrollable);
-    
+
     return () => {
       window.removeEventListener('resize', checkScrollable);
     };
   }, [steps]);
 
-  // Scroll to current step when component mounts or step changes
-  useEffect(() => {
-    scrollToCurrentStep();
-  }, [currentStep]);
-
-  const navClasses = `
-    glass fixed bottom-4 left-1/2 transform -translate-x-1/2 p-2 rounded-full shadow-lg z-20
-    ${isMobile ? 'w-[90%]' : 'max-w-3xl'}
-  `;
-
+  // Desktop layout - full width tabs
+  if (!isMobile) {
+    return (
+      <div className="fixed bottom-0 left-0 w-full bg-background border-t border-border z-20">
+        <div className="container mx-auto py-2 px-4">
+          <nav className="flex items-center justify-between flex-wrap gap-1">
+            {steps.map((step, index) => (
+              <button
+                key={index}
+                data-step={index}
+                onClick={() => handleStepChange(index)}
+                className={`flex items-center gap-1.5 p-2 rounded transition-all duration-200 border
+                  ${currentStep === index 
+                    ? 'bg-primary text-primary-foreground font-medium border-primary'
+                    : 'hover:bg-accent text-muted-foreground hover:text-foreground border-border'
+                  }`}
+                aria-label={`Ir para ${step}`}
+                title={step}
+              >
+                <span className="flex items-center justify-center">
+                  {getStepIcon(step, index)}
+                </span>
+                <span className="text-xs whitespace-nowrap">
+                  {step}
+                </span>
+              </button>
+            ))}
+          </nav>
+        </div>
+      </div>
+    );
+  }
+  
+  // Mobile layout - compact, scrollable
   return (
-    <div className={navClasses}>
+    <div className="glass fixed bottom-4 left-1/2 transform -translate-x-1/2 p-2 rounded-full shadow-lg z-20 w-[90%] border border-border">
       <div className="flex items-center gap-1">
         <button
           onClick={() => handleStepChange(Math.max(0, currentStep - 1))}
           disabled={currentStep === 0}
-          className="p-2 rounded-full disabled:opacity-50 text-muted-foreground hover:text-primary disabled:hover:text-muted-foreground transition-colors shrink-0"
+          className="p-2 rounded-full disabled:opacity-50 text-muted-foreground hover:text-primary disabled:hover:text-muted-foreground transition-colors shrink-0 border border-border"
           aria-label="Etapa anterior"
         >
           <ChevronLeft size={16} />
         </button>
-        
-        <div 
+
+        <div
           ref={navRef}
-          className="flex items-center gap-1 px-2 overflow-x-auto hide-scrollbar scroll-smooth" 
+          className="flex items-center gap-1 px-2 overflow-x-auto hide-scrollbar scroll-smooth"
           style={{ scrollbarWidth: 'none' }}
         >
           {steps.map((step, index) => (
@@ -132,10 +131,10 @@ const FormNavigation: React.FC<FormNavigationProps> = ({
               key={index}
               data-step={index}
               onClick={() => handleStepChange(index)}
-              className={`relative flex items-center justify-center p-2 rounded-full transition-all duration-200 shrink-0 ${
+              className={`relative flex items-center justify-center p-2 rounded-full transition-all duration-200 shrink-0 border ${
                 currentStep === index
-                  ? 'bg-primary text-primary-foreground'
-                  : 'hover:bg-accent text-muted-foreground'
+                  ? 'bg-primary text-primary-foreground border-primary'
+                  : 'hover:bg-accent text-muted-foreground border-border'
               }`}
               aria-label={`Ir para ${step}`}
               title={step}
@@ -143,26 +142,26 @@ const FormNavigation: React.FC<FormNavigationProps> = ({
               <span className="flex items-center justify-center">
                 {getStepIcon(step, index)}
               </span>
-              
+
               {/* Pill indicator for mobile */}
-              <span 
+              <span
                 className={`absolute -top-1 -right-1 w-2 h-2 rounded-full bg-primary transition-transform duration-200 ${
                   currentStep === index ? 'scale-100' : 'scale-0'
-                } md:hidden`}
+                }`}
               ></span>
-              
-              {/* Step name for larger screens */}
+
+              {/* Step name for mobile */}
               <span className="ml-1 hidden sm:inline text-xs whitespace-nowrap">
-                {isMobile ? step.split(' ')[0] : step}
+                {step.split(' ')[0]}
               </span>
             </button>
           ))}
         </div>
-        
+
         <button
           onClick={() => handleStepChange(Math.min(steps.length - 1, currentStep + 1))}
           disabled={currentStep === steps.length - 1}
-          className="p-2 rounded-full disabled:opacity-50 text-muted-foreground hover:text-primary disabled:hover:text-muted-foreground transition-colors shrink-0"
+          className="p-2 rounded-full disabled:opacity-50 text-muted-foreground hover:text-primary disabled:hover:text-muted-foreground transition-colors shrink-0 border border-border"
           aria-label="Próxima etapa"
         >
           <ChevronRight size={16} />
