@@ -8,9 +8,10 @@ import PlanLoadModal from '@/components/PlanLoadModal';
 import PlanTitleModal from '@/components/PlanTitleModal';
 import WelcomeScreen from '@/components/WelcomeScreen';
 import ChecklistPanel from '@/components/ChecklistPanel';
+import PlanDashboard from '@/components/PlanDashboard';
 import { PlanProvider, usePlan } from '@/context/PlanContext';
 import { AuthProvider, useAuth } from '@/context/AuthContext';
-import { TeachingPlan } from '@/utils/storage';
+import { TeachingPlan, createEmptyPlan } from '@/utils/storage';
 
 import { exportAsPdf, exportAsTxt } from '@/utils/export';
 
@@ -28,6 +29,7 @@ import ScheduleForm from '@/components/forms/ScheduleForm';
 import BibliographyForm from '@/components/forms/BibliographyForm';
 import SignaturesForm from '@/components/forms/SignaturesForm';
 import '@/index.css';
+import { toast } from '@/components/ui/use-toast';
 
 const steps = [
   "1. Identificação",
@@ -52,11 +54,13 @@ const PlanContent = () => {
     handleNewPlan,
     handleSavePlan,
     handleLoadPlan,
-    handleSelectPlan,
+    handleSelectPlan, // Para criar cópia
+    handleOpenPlan, // Para abrir diretamente
     handleDeletePlan,
     confirmDeletePlan,
     handleExportPlan,
     handleExportPlanAsPdf,
+    handleCopyPlan,
     savedPlans,
     canDeletePlan,
     handleRenamePlan
@@ -80,6 +84,7 @@ const PlanContent = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isTitleModalOpen, setIsTitleModalOpen] = useState(false);
   const [isChecklistOpen, setIsChecklistOpen] = useState(false);
+  const [showForm, setShowForm] = useState(false);
 
   const onLoadPlan = () => {
     handleLoadPlan();
@@ -95,13 +100,44 @@ const PlanContent = () => {
   };
 
   const onDeleteClick = () => {
-    handleDeletePlan();
+    // Verificar se o plano tem ID (não é um plano vazio)
+    if (plan.id === createEmptyPlan().id) {
+      toast({
+        title: "Aviso",
+        description: "Não é possível excluir um plano que ainda não foi salvo.",
+        variant: "default",
+      });
+      return;
+    }
+    
+    console.log("Opening delete modal for plan:", plan.id, plan.title);
     setIsDeleteModalOpen(true);
   };
 
-  const onConfirmDelete = () => {
-    confirmDeletePlan();
-    setIsDeleteModalOpen(false);
+  const onConfirmDelete = async () => {
+    try {
+      console.log("Starting deletion process for plan:", plan.id);
+      const success = await confirmDeletePlan();
+      console.log("Deletion result:", success);
+      
+      setIsDeleteModalOpen(false);
+      
+      if (success) {
+        setShowForm(false); // Voltar para o dashboard após excluir com sucesso
+        toast({
+          title: "Plano excluído",
+          description: "O plano foi excluído com sucesso."
+        });
+      }
+    } catch (error) {
+      console.error("Error in onConfirmDelete:", error);
+      setIsDeleteModalOpen(false);
+      toast({
+        title: "Erro ao excluir",
+        description: "Ocorreu um erro ao excluir o plano.",
+        variant: "destructive"
+      });
+    }
   };
 
   const onRenamePlan = () => {
@@ -122,40 +158,60 @@ const PlanContent = () => {
     window.scrollTo(0, 0);
   }, [currentStep]);
 
-  // Create modified handlers that ensure scrolling to top
-  const handleSelectPlanWithScroll = (plan: TeachingPlan) => {
-    handleSelectPlan(plan);
-    setIsLoadModalOpen(false);
+  // Functions to handle dashboard interaction
+  const handleNewPlanFromDashboard = () => {
+    handleNewPlan();
+    setShowForm(true);
     window.scrollTo(0, 0);
   };
 
-  const handleNewPlanWithScroll = () => {
-    handleNewPlan();
+  const handleSelectPlanWithScroll = (plan: TeachingPlan) => {
+    handleOpenPlan(plan); // Usar handleOpenPlan em vez de handleSelectPlan
+    setIsLoadModalOpen(false);
+    setShowForm(true);
+    window.scrollTo(0, 0);
+  };
+
+  const handleSavePlanWithRedirect = async () => {
+    await handleSavePlan();
+    setShowForm(false); // Voltar para o dashboard após salvar
+  };
+
+  const handleBackToDashboard = () => {
+    setShowForm(false);
     window.scrollTo(0, 0);
   };
 
   return (
     <div className="min-h-screen pb-24">
       <Header
-        onNewPlan={handleNewPlanWithScroll}
-        onLoadPlan={onLoadPlan}
-        onSavePlan={handleSavePlan}
+        onSavePlan={showForm ? handleSavePlanWithRedirect : undefined}
         onExportPlan={handleExportTxt}
         onExportPlanAsPdf={handleExportPdf}
+        onCopyPlan={showForm ? handleCopyPlan : undefined}
         onLoginClick={handleLogin}
         onLogout={handleLogout}
         onDeleteClick={onDeleteClick}
         onUserSettings={handleUserSettings}
         onRenamePlan={onRenamePlan}
+        onBackToDashboard={showForm ? handleBackToDashboard : undefined}
         currentUser={currentUser}
         canDelete={canDeletePlan}
-        currentPlanTitle={plan.title}
+        currentPlanTitle={showForm ? plan.title : undefined}
         onToggleChecklist={() => setIsChecklistOpen(!isChecklistOpen)}
         isChecklistVisible={isChecklistOpen}
+        showActions={showForm}
       />
 
       {!currentUser ? (
         <WelcomeScreen onLoginClick={handleLogin} />
+      ) : !showForm ? (
+        <PlanDashboard
+          savedPlans={savedPlans}
+          onNewPlan={handleNewPlanFromDashboard}
+          onLoadPlan={onLoadPlan}
+          onSelectPlan={handleSelectPlanWithScroll} // Usar a função que abre diretamente
+        />
       ) : (
         <main className="container max-w-4xl mx-auto px-4">
           <div className="mb-16">
@@ -181,7 +237,7 @@ const PlanContent = () => {
         </main>
       )}
 
-      {currentUser && (
+      {currentUser && showForm && (
         <ChecklistPanel 
           isOpen={isChecklistOpen}
           onToggle={() => setIsChecklistOpen(!isChecklistOpen)}
@@ -213,7 +269,7 @@ const PlanContent = () => {
         isOpen={isLoadModalOpen}
         onClose={() => setIsLoadModalOpen(false)}
         savedPlans={savedPlans}
-        onSelectPlan={handleSelectPlanWithScroll}
+        onSelectPlan={handleSelectPlanWithScroll} // Usar a função que abre diretamente
       />
 
       <PlanTitleModal

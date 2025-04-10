@@ -1,5 +1,13 @@
 import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
-import { TeachingPlan, createEmptyPlan, savePlan, getAllPlans, deletePlan } from '@/utils/storage';
+import { 
+  getAllPlans, 
+  savePlan, 
+  deletePlan, 
+  TeachingPlan, 
+  createEmptyPlan,
+  getPlanById
+} from '@/utils/storage';
+import { auth } from '@/config/firebase';
 import { useToast } from '../hooks/use-toast';
 import { exportAsPdf, exportAsTxt } from '@/utils/export';
 
@@ -13,9 +21,10 @@ type PlanContextType = {
   handleNewPlan: () => void;
   handleSavePlan: () => void;
   handleLoadPlan: () => void;
-  handleSelectPlan: (selectedPlan: TeachingPlan) => void;
+  handleSelectPlan: (selectedPlan: TeachingPlan) => Promise<TeachingPlan | null>;
+  handleOpenPlan: (selectedPlan: TeachingPlan) => void; // Nova função para abrir sem copiar
   handleDeletePlan: () => void;
-  confirmDeletePlan: () => void;
+  confirmDeletePlan: () => Promise<boolean>;
   handleExportPlan: () => void;
   handleExportPlanAsPdf: () => void;
   updateField: (path: string, value: unknown) => void;
@@ -23,6 +32,7 @@ type PlanContextType = {
   removeItemFromArray: (path: string, index: number) => void;
   canDeletePlan: boolean;
   handleRenamePlan: (newTitle: string) => Promise<void>;
+  handleCopyPlan: () => Promise<TeachingPlan | null>;
 };
 
 const PlanContext = createContext<PlanContextType | undefined>(undefined);
@@ -41,8 +51,7 @@ export function PlanProvider({ children }: { children: ReactNode }) {
     loadSavedPlans();
   }, []);
   
-  const canDeletePlan = plan.id !== createEmptyPlan().id && 
-                        savedPlans.some(savedPlan => savedPlan.id === plan.id);
+  const canDeletePlan = plan.id !== createEmptyPlan().id;
                         
   const handleNewPlan = () => {
     if (confirm("Criar um novo plano? Todas as alterações não salvas serão perdidas.")) {
@@ -91,14 +100,72 @@ export function PlanProvider({ children }: { children: ReactNode }) {
     setSavedPlans(plans);
   };
 
-  const handleSelectPlan = (selectedPlan: TeachingPlan) => {
-    setPlan(selectedPlan);
-    setCurrentStep(0);
-    window.scrollTo(0, 0);
-    toast({
-      title: "Plano carregado",
-      description: `"${selectedPlan.title}" foi carregado com sucesso.`,
-    });
+  const handleSelectPlan = async (selectedPlan: TeachingPlan) => {
+    try {
+      // Remove any existing "(Cópia)" suffixes before adding a new one
+      let cleanTitle = selectedPlan.title;
+      if (cleanTitle.includes(" (Cópia)")) {
+        cleanTitle = cleanTitle.replace(/\s\(Cópia\)+/g, "");
+      }
+      
+      const newPlan = {
+        ...selectedPlan,
+        id: Date.now().toString(),
+        title: `${cleanTitle} (Cópia)`,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      
+      // Primeiro salvar o plano no Firestore para garantir que ele possa ser excluído
+      await savePlan(newPlan);
+      
+      // Depois atualizar o estado local
+      setPlan(newPlan);
+      setCurrentStep(0);
+      
+      // Atualizar a lista de planos
+      const updatedPlans = await getAllPlans();
+      setSavedPlans(updatedPlans);
+      
+      toast({
+        title: "Plano carregado",
+        description: `Uma cópia do plano "${cleanTitle}" foi criada.`,
+      });
+      
+      return newPlan;
+    } catch (error) {
+      console.error('Error selecting plan:', error);
+      toast({
+        title: "Erro ao carregar plano",
+        description: "Não foi possível carregar o plano selecionado. Tente novamente.",
+        variant: "destructive",
+      });
+      return null;
+    }
+  };
+
+  // Adicionar nova função para abrir um plano sem criar cópia
+  const handleOpenPlan = (selectedPlan: TeachingPlan) => {
+    try {
+      // Simplesmente definir o plano selecionado como o plano atual
+      setPlan(selectedPlan);
+      setCurrentStep(0);
+      
+      toast({
+        title: "Plano aberto",
+        description: `O plano "${selectedPlan.title}" foi aberto com sucesso.`,
+      });
+      
+      return selectedPlan;
+    } catch (error) {
+      console.error('Error opening plan:', error);
+      toast({
+        title: "Erro ao abrir plano",
+        description: "Não foi possível abrir o plano selecionado. Tente novamente.",
+        variant: "destructive",
+      });
+      return null;
+    }
   };
 
   const handleExportPlan = () => {
@@ -137,26 +204,58 @@ export function PlanProvider({ children }: { children: ReactNode }) {
     // This will be handled in the Index component to show the modal
   };
 
-  const confirmDeletePlan = async () => {
+  const confirmDeletePlan = async (): Promise<boolean> => {
     try {
-      const success = deletePlan(plan.id);
-      if (success) {
+      console.log("Deleting plan with ID:", plan.id);
+      
+      // Verifique se estamos tentando excluir um plano vazio
+      if (plan.id === createEmptyPlan().id) {
         toast({
-          title: "Plano excluído",
-          description: `O plano "${plan.title}" foi excluído com sucesso.`,
+          title: "Erro ao excluir",
+          description: "Não é possível excluir um plano que não foi salvo.",
+          variant: "destructive",
         });
+        return false;
+      }
+      
+      // Garantir que o usuário atual esteja logado
+      const currentUser = auth.currentUser;
+      if (!currentUser) {
+        toast({
+          title: "Erro ao excluir",
+          description: "Você precisa estar logado para excluir planos.",
+          variant: "destructive",
+        });
+        return false;
+      }
+      
+      // Chamar a função deletePlan de utils/storage
+      const success = await deletePlan(plan.id);
+      
+      if (success) {
+        console.log("Plan deleted successfully!");
         
+        // Criar um novo plano vazio após a exclusão
         setPlan(createEmptyPlan());
-        setSavedPlans(await getAllPlans());
+        setCurrentStep(0);
+        
+        // Atualizar a lista de planos salvos
+        const updatedPlans = await getAllPlans();
+        setSavedPlans(updatedPlans);
+        
+        return true;
       } else {
-        throw new Error("Falha ao excluir o plano");
+        console.error("Failed to delete plan");
+        throw new Error("Não foi possível excluir o plano");
       }
     } catch (error) {
+      console.error("Error deleting plan:", error);
       toast({
         title: "Erro ao excluir",
         description: "Não foi possível excluir o plano. Tente novamente.",
         variant: "destructive",
       });
+      return false;
     }
   };
 
@@ -269,6 +368,56 @@ export function PlanProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const handleCopyPlan = async () => {
+    try {
+      console.log("Starting plan copy process for plan:", plan.id);
+      
+      // Remove any existing "(Cópia)" suffixes before adding a new one
+      let cleanTitle = plan.title;
+      if (cleanTitle.includes(" (Cópia)")) {
+        cleanTitle = cleanTitle.replace(/\s\(Cópia\)+/g, "");
+      }
+      
+      // Criar uma cópia do plano atual com um novo ID
+      const newId = Date.now().toString();
+      const planCopy = {
+        ...plan,
+        id: newId,
+        title: `${cleanTitle} (Cópia)`,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      
+      console.log("Created copy with new ID:", newId);
+      
+      // Salvar a cópia no Firestore
+      await savePlan(planCopy);
+      console.log("Copy saved to Firestore");
+      
+      // Atualizar a lista de planos
+      const updatedPlans = await getAllPlans();
+      setSavedPlans(updatedPlans);
+      
+      toast({
+        title: "Plano copiado",
+        description: `Uma cópia do plano "${cleanTitle}" foi criada.`,
+      });
+      
+      // Definir o plano atual como a cópia
+      setPlan(planCopy);
+      
+      return planCopy;
+    } catch (error) {
+      console.error('Error copying plan:', error);
+      toast({
+        title: "Erro ao copiar plano",
+        description: "Não foi possível criar uma cópia do plano. Tente novamente.",
+        variant: "destructive",
+      });
+      return null;
+    }
+  };
+
   return (
     <PlanContext.Provider value={{
       plan,
@@ -281,6 +430,7 @@ export function PlanProvider({ children }: { children: ReactNode }) {
       handleSavePlan,
       handleLoadPlan,
       handleSelectPlan,
+      handleOpenPlan,
       handleDeletePlan,
       confirmDeletePlan,
       handleExportPlan,
@@ -290,6 +440,7 @@ export function PlanProvider({ children }: { children: ReactNode }) {
       removeItemFromArray,
       canDeletePlan,
       handleRenamePlan,
+      handleCopyPlan,
     }}>
       {children}
     </PlanContext.Provider>

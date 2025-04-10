@@ -1,4 +1,5 @@
 import React from 'react';
+import { XCircle } from 'lucide-react';
 
 interface DeletePlanModalProps {
   isOpen: boolean;
@@ -7,26 +8,43 @@ interface DeletePlanModalProps {
   planTitle: string;
 }
 
-const DeletePlanModal: React.FC<DeletePlanModalProps> = ({ isOpen, onClose, onConfirm, planTitle }) => {
+const DeletePlanModal: React.FC<DeletePlanModalProps> = ({
+  isOpen,
+  onClose,
+  onConfirm,
+  planTitle
+}) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-      <div className="bg-white p-6 rounded shadow-lg">
-        <h2 className="text-xl font-semibold mb-4">Confirmar exclusão</h2>
-        <p className="mb-4">Você tem certeza que deseja excluir o plano intitulado "{planTitle}"?</p>
-        <div className="flex justify-end space-x-4">
-          <button 
-            onClick={onClose} 
-            className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400 transition-colors"
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-background rounded-lg shadow-xl max-w-md w-full animate-scale-in">
+        <div className="p-6 flex items-start gap-4">
+          <div className="text-destructive shrink-0">
+            <XCircle size={24} />
+          </div>
+          <div>
+            <h2 className="text-xl font-semibold mb-2">Excluir plano</h2>
+            <p className="text-muted-foreground mb-2">
+              Tem certeza que deseja excluir o plano <strong className="text-foreground">{planTitle}</strong>?
+            </p>
+            <p className="text-sm text-destructive">
+              Esta ação não pode ser desfeita.
+            </p>
+          </div>
+        </div>
+        <div className="border-t border-border px-6 py-4 flex justify-end gap-2">
+          <button
+            className="btn btn-ghost"
+            onClick={onClose}
           >
             Cancelar
           </button>
-          <button 
-            onClick={onConfirm} 
-            className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
+          <button
+            className="btn btn-destructive"
+            onClick={onConfirm}
           >
-            Confirmar
+            Excluir
           </button>
         </div>
       </div>

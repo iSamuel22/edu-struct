@@ -78,6 +78,24 @@ export interface TeachingPlan {
   };
 }
 
+// Define the structure for alert data
+type AlertData = {
+  show: boolean;
+  title: string;
+  message: string;
+  confirmText: string;
+  cancelText: string;
+  type: 'info' | 'success' | 'warning' | 'danger';
+  onConfirm: () => void;
+};
+
+type PlanContextType = {
+  // ... outros campos
+  alertData: AlertData;
+  setAlertData: React.Dispatch<React.SetStateAction<AlertData>>;
+  closeAlert: () => void;
+};
+
 // Create a new empty plan
 export const createEmptyPlan = (): TeachingPlan => {
   return {
@@ -224,19 +242,46 @@ export const getPlanById = async (id: string): Promise<TeachingPlan | null> => {
 // Delete a plan
 export const deletePlan = async (id: string): Promise<boolean> => {
   try {
+    console.log(`Attempting to delete plan with ID: ${id}`);
+    
+    // Verificar login do usuário
     const currentUser = auth.currentUser;
     if (!currentUser) {
+      console.error('No user is currently logged in');
       return false;
     }
 
-    const planRef = doc(db, 'teachingPlans', id);
+    // Referência para o documento no Firestore
+    const planRef = doc(db, "teachingPlans", id);
+    
+    // Verificar se o plano existe antes de tentar excluí-lo
     const planDoc = await getDoc(planRef);
     
-    if (planDoc.exists() && planDoc.data().userId === currentUser.uid) {
-      await deleteDoc(planRef);
-      return true;
+    if (!planDoc.exists()) {
+      console.error(`Plan with ID ${id} does not exist`);
+      return false;
     }
-    return false;
+    
+    // Verificar se o plano pertence ao usuário atual
+    const planData = planDoc.data();
+    if (planData.userId !== currentUser.uid) {
+      console.error(`Plan with ID ${id} belongs to user ${planData.userId}, not current user ${currentUser.uid}`);
+      return false;
+    }
+    
+    // Excluir o plano
+    console.log(`Deleting plan document from Firestore: ${id}`);
+    await deleteDoc(planRef);
+    
+    // Verificar se a exclusão foi bem-sucedida
+    const checkDoc = await getDoc(planRef);
+    if (checkDoc.exists()) {
+      console.error('Plan still exists after deletion attempt');
+      return false;
+    }
+    
+    console.log(`Successfully deleted plan with ID: ${id}`);
+    return true;
   } catch (error) {
     console.error('Error deleting plan:', error);
     return false;

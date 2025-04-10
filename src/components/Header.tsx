@@ -2,7 +2,6 @@ import React, { useState, useRef, useEffect } from 'react';
 import { 
   FileText, 
   Save, 
-  Upload, 
   Download, 
   FileDown, 
   LogIn, 
@@ -12,20 +11,21 @@ import {
   Settings,
   UserCog,
   ChevronDown,
+  ChevronLeft,
   Edit2,
   List,
-  Menu, // Add menu icon for mobile
-  X // Add X icon for closing mobile menu
+  Menu,
+  X,
+  Copy
 } from "lucide-react";
 import { User as UserType } from '@/utils/auth';
-import { useIsMobile } from '@/hooks/use-mobile'; // Import the hook
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface HeaderProps {
-  onNewPlan: () => void;
-  onLoadPlan: () => void;
   onSavePlan: () => void;
   onExportPlan: () => void;
   onExportPlanAsPdf: () => void;
+  onCopyPlan?: () => void;
   onLoginClick: () => void;
   onLogout: () => void;
   onDeleteClick: () => void;
@@ -36,14 +36,15 @@ interface HeaderProps {
   currentUser: any;
   canDelete: boolean;
   currentPlanTitle?: string;
+  showActions?: boolean;
+  onBackToDashboard?: () => void;
 }
 
 const Header: React.FC<HeaderProps> = ({ 
-  onNewPlan, 
-  onLoadPlan, 
   onSavePlan, 
   onExportPlan,
   onExportPlanAsPdf,
+  onCopyPlan,
   onLoginClick,
   onLogout,
   onDeleteClick,
@@ -53,7 +54,9 @@ const Header: React.FC<HeaderProps> = ({
   isChecklistVisible,
   currentUser,
   canDelete,
-  currentPlanTitle
+  currentPlanTitle,
+  showActions = true,
+  onBackToDashboard
 }) => {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -97,10 +100,20 @@ const Header: React.FC<HeaderProps> = ({
   return (
     <header className="glass sticky top-0 z-10 px-3 sm:px-6 py-3 sm:py-4 mb-4 sm:mb-8 rounded-b-xl flex justify-between items-center animate-fade-in">
       <div className="flex items-center gap-2 sm:gap-3">
+        {showActions && onBackToDashboard ? (
+          <button
+            onClick={onBackToDashboard}
+            className="text-muted-foreground hover:text-primary transition-colors mr-2"
+            title="Voltar para o Dashboard"
+          >
+            <ChevronLeft size={20} />
+          </button>
+        ) : null}
+        
         <FileText className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
         <div className="flex flex-col">
           <h1 className="text-lg sm:text-xl font-medium">EduCraft</h1>
-          {currentUser && currentPlanTitle && (
+          {currentUser && currentPlanTitle && showActions && (
             <div className="flex items-center gap-1">
               <p className="text-xs text-muted-foreground truncate max-w-[140px] sm:max-w-none">
                 {currentPlanTitle}
@@ -123,75 +136,72 @@ const Header: React.FC<HeaderProps> = ({
         <>
           {/* Desktop menu */}
           <div className="hidden md:flex items-center gap-2">
-            <button 
-              onClick={onNewPlan}
-              className="btn btn-ghost text-sm flex items-center gap-1"
-              aria-label="Novo plano"
-            >
-              <FileText className="h-4 w-4" />
-              <span>Novo</span>
-            </button>
-            
-            <button 
-              onClick={onLoadPlan}
-              className="btn btn-ghost text-sm flex items-center gap-1"
-              aria-label="Carregar plano"
-            >
-              <Upload className="h-4 w-4" />
-              <span>Carregar</span>
-            </button>
-            
-            <button 
-              onClick={onSavePlan}
-              className="btn btn-ghost text-sm flex items-center gap-1"
-              aria-label="Salvar plano"
-            >
-              <Save className="h-4 w-4" />
-              <span>Salvar</span>
-            </button>
-            
-            {canDelete && (
-              <button 
-                onClick={onDeleteClick}
-                className="btn btn-ghost text-sm flex items-center gap-1 text-destructive"
-                aria-label="Excluir plano"
-              >
-                <Trash2 className="h-4 w-4" />
-                <span>Excluir</span>
-              </button>
-            )}
-            
-            {onToggleChecklist && (
-              <button 
-                onClick={onToggleChecklist}
-                className={`btn ${isChecklistVisible ? 'btn-primary' : 'btn-ghost'} text-sm flex items-center gap-1`}
-                aria-label="Checklist"
-                title="Visualizar checklist do plano"
-              >
-                <List className="h-4 w-4" />
-                <span>Checklist</span>
-              </button>
-            )}
-            
-            <div className="relative group">
-              <button 
-                className="btn btn-ghost text-sm flex items-center gap-1"
-                aria-label="Exportar plano"
-              >
-                <Download className="h-4 w-4" />
-                <span>Exportar</span>
-              </button>
-              
-              <div className="absolute right-0 mt-1 w-40 bg-background shadow-lg rounded-md overflow-hidden opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+            {showActions && (
+              <>
                 <button 
-                  onClick={onExportPlanAsPdf}
-                  className="w-full px-4 py-2 text-left text-sm hover:bg-accent flex items-center gap-2"
+                  onClick={onSavePlan}
+                  className="btn btn-ghost text-sm flex items-center gap-1"
+                  aria-label="Salvar plano"
                 >
-                  <FileDown className="h-4 w-4" />
-                  <span>PDF</span>
+                  <Save className="h-4 w-4" />
+                  <span>Salvar</span>
                 </button>
-              </div>
-            </div>
+                
+                {onCopyPlan && (
+                  <button 
+                    onClick={onCopyPlan}
+                    className="btn btn-ghost text-sm flex items-center gap-1"
+                    aria-label="Copiar plano"
+                  >
+                    <Copy className="h-4 w-4" />
+                    <span>Copiar</span>
+                  </button>
+                )}
+                
+                {canDelete && (
+                  <button 
+                    onClick={onDeleteClick}
+                    className="btn btn-ghost text-sm flex items-center gap-1 text-destructive"
+                    aria-label="Excluir plano"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    <span>Excluir</span>
+                  </button>
+                )}
+                
+                {onToggleChecklist && (
+                  <button 
+                    onClick={onToggleChecklist}
+                    className={`btn ${isChecklistVisible ? 'btn-primary' : 'btn-ghost'} text-sm flex items-center gap-1`}
+                    aria-label="Checklist"
+                    title="Visualizar checklist do plano"
+                  >
+                    <List className="h-4 w-4" />
+                    <span>Checklist</span>
+                  </button>
+                )}
+                
+                <div className="relative group">
+                  <button 
+                    className="btn btn-ghost text-sm flex items-center gap-1"
+                    aria-label="Exportar plano"
+                  >
+                    <Download className="h-4 w-4" />
+                    <span>Exportar</span>
+                  </button>
+                  
+                  <div className="absolute right-0 mt-1 w-40 bg-background shadow-lg rounded-md overflow-hidden opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                    <button 
+                      onClick={onExportPlanAsPdf}
+                      className="w-full px-4 py-2 text-left text-sm hover:bg-accent flex items-center gap-2"
+                    >
+                      <FileDown className="h-4 w-4" />
+                      <span>PDF</span>
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
             
             {/* User Menu Dropdown */}
             <div className="relative ml-4 border-l pl-4 border-border" ref={userMenuRef}>
@@ -275,88 +285,96 @@ const Header: React.FC<HeaderProps> = ({
                 
                 {/* Mobile menu items */}
                 <div className="space-y-3">
-                  <button 
-                    onClick={() => {
-                      onNewPlan();
-                      setIsMobileMenuOpen(false);
-                    }}
-                    className="w-full px-3 py-3 text-left font-medium hover:bg-accent rounded-md flex items-center gap-3"
-                  >
-                    <FileText className="h-5 w-5" />
-                    <span>Novo Plano</span>
-                  </button>
-                  
-                  <button 
-                    onClick={() => {
-                      onLoadPlan();
-                      setIsMobileMenuOpen(false);
-                    }}
-                    className="w-full px-3 py-3 text-left font-medium hover:bg-accent rounded-md flex items-center gap-3"
-                  >
-                    <Upload className="h-5 w-5" />
-                    <span>Carregar Plano</span>
-                  </button>
-                  
-                  <button 
-                    onClick={() => {
-                      onSavePlan();
-                      setIsMobileMenuOpen(false);
-                    }}
-                    className="w-full px-3 py-3 text-left font-medium hover:bg-accent rounded-md flex items-center gap-3"
-                  >
-                    <Save className="h-5 w-5" />
-                    <span>Salvar Plano</span>
-                  </button>
-                  
-                  {canDelete && (
-                    <button 
-                      onClick={() => {
-                        onDeleteClick();
-                        setIsMobileMenuOpen(false);
-                      }}
-                      className="w-full px-3 py-3 text-left font-medium hover:bg-accent rounded-md flex items-center gap-3 text-destructive"
-                    >
-                      <Trash2 className="h-5 w-5" />
-                      <span>Excluir Plano</span>
-                    </button>
+                  {showActions && (
+                    <>
+                      {onBackToDashboard && (
+                        <button 
+                          onClick={() => {
+                            onBackToDashboard();
+                            setIsMobileMenuOpen(false);
+                          }}
+                          className="w-full px-3 py-3 text-left font-medium hover:bg-accent rounded-md flex items-center gap-3"
+                        >
+                          <ChevronLeft className="h-5 w-5" />
+                          <span>Voltar ao Dashboard</span>
+                        </button>
+                      )}
+                      
+                      <button 
+                        onClick={() => {
+                          onSavePlan();
+                          setIsMobileMenuOpen(false);
+                        }}
+                        className="w-full px-3 py-3 text-left font-medium hover:bg-accent rounded-md flex items-center gap-3"
+                      >
+                        <Save className="h-5 w-5" />
+                        <span>Salvar Plano</span>
+                      </button>
+                      
+                      {onCopyPlan && (
+                        <button 
+                          onClick={() => {
+                            onCopyPlan();
+                            setIsMobileMenuOpen(false);
+                          }}
+                          className="w-full px-3 py-3 text-left font-medium hover:bg-accent rounded-md flex items-center gap-3"
+                        >
+                          <Copy className="h-5 w-5" />
+                          <span>Copiar Plano</span>
+                        </button>
+                      )}
+                      
+                      {canDelete && (
+                        <button 
+                          onClick={() => {
+                            onDeleteClick();
+                            setIsMobileMenuOpen(false);
+                          }}
+                          className="w-full px-3 py-3 text-left font-medium hover:bg-accent rounded-md flex items-center gap-3 text-destructive"
+                        >
+                          <Trash2 className="h-5 w-5" />
+                          <span>Excluir Plano</span>
+                        </button>
+                      )}
+                      
+                      {currentPlanTitle && onRenamePlan && (
+                        <button 
+                          onClick={() => {
+                            onRenamePlan();
+                            setIsMobileMenuOpen(false);
+                          }}
+                          className="w-full px-3 py-3 text-left font-medium hover:bg-accent rounded-md flex items-center gap-3"
+                        >
+                          <Edit2 className="h-5 w-5" />
+                          <span>Renomear Plano</span>
+                        </button>
+                      )}
+                      
+                      {onToggleChecklist && (
+                        <button 
+                          onClick={() => {
+                            onToggleChecklist();
+                            setIsMobileMenuOpen(false);
+                          }}
+                          className={`w-full px-3 py-3 text-left font-medium hover:bg-accent rounded-md flex items-center gap-3 ${isChecklistVisible ? 'text-primary' : ''}`}
+                        >
+                          <List className="h-5 w-5" />
+                          <span>Ver Checklist</span>
+                        </button>
+                      )}
+                      
+                      <button 
+                        onClick={() => {
+                          onExportPlanAsPdf();
+                          setIsMobileMenuOpen(false);
+                        }}
+                        className="w-full px-3 py-3 text-left font-medium hover:bg-accent rounded-md flex items-center gap-3"
+                      >
+                        <FileDown className="h-5 w-5" />
+                        <span>Exportar como PDF</span>
+                      </button>
+                    </>
                   )}
-                  
-                  {currentPlanTitle && onRenamePlan && (
-                    <button 
-                      onClick={() => {
-                        onRenamePlan();
-                        setIsMobileMenuOpen(false);
-                      }}
-                      className="w-full px-3 py-3 text-left font-medium hover:bg-accent rounded-md flex items-center gap-3"
-                    >
-                      <Edit2 className="h-5 w-5" />
-                      <span>Renomear Plano</span>
-                    </button>
-                  )}
-                  
-                  {onToggleChecklist && (
-                    <button 
-                      onClick={() => {
-                        onToggleChecklist();
-                        setIsMobileMenuOpen(false);
-                      }}
-                      className={`w-full px-3 py-3 text-left font-medium hover:bg-accent rounded-md flex items-center gap-3 ${isChecklistVisible ? 'text-primary' : ''}`}
-                    >
-                      <List className="h-5 w-5" />
-                      <span>Ver Checklist</span>
-                    </button>
-                  )}
-                  
-                  <button 
-                    onClick={() => {
-                      onExportPlanAsPdf();
-                      setIsMobileMenuOpen(false);
-                    }}
-                    className="w-full px-3 py-3 text-left font-medium hover:bg-accent rounded-md flex items-center gap-3"
-                  >
-                    <FileDown className="h-5 w-5" />
-                    <span>Exportar como PDF</span>
-                  </button>
                 </div>
                 
                 {/* Mobile settings and logout */}
