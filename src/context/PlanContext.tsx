@@ -46,6 +46,41 @@ export function PlanProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
   const [isLoadingPlans, setIsLoadingPlans] = useState(true);
   const [lastLoadedUserId, setLastLoadedUserId] = useState<string | null>(null);
+
+  // Adicionar estado para AlertModal
+  const [alertConfig, setAlertConfig] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    type: 'info' | 'success' | 'warning' | 'error';
+    onConfirm?: () => void;
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    type: 'info',
+  });
+
+  // Função helper para mostrar alertas
+  const showAlert = (
+    title: string, 
+    message: string, 
+    type: 'info' | 'success' | 'warning' | 'error' = 'info',
+    onConfirm?: () => void
+  ) => {
+    setAlertConfig({
+      isOpen: true,
+      title,
+      message,
+      type,
+      onConfirm
+    });
+  };
+
+  // Função para fechar o alerta
+  const closeAlert = () => {
+    setAlertConfig(prev => ({ ...prev, isOpen: false }));
+  };
   
   useEffect(() => {
     setSavedPlans([]);
@@ -98,10 +133,11 @@ export function PlanProvider({ children }: { children: ReactNode }) {
       setPlan(createEmptyPlan());
       setCurrentStep(0);
       window.scrollTo(0, 0);
-      toast({
-        title: "Novo plano criado",
-        description: "Comece preenchendo as informações de identificação.",
-      });
+      showAlert(
+        "Novo plano criado",
+        "Comece preenchendo as informações de identificação.",
+        "success"
+      );
     }
   };
 
@@ -119,22 +155,22 @@ export function PlanProvider({ children }: { children: ReactNode }) {
         await savePlan(plan);
       }
       
-      toast({
-        title: "Plano salvo",
-        description: "Seu plano de ensino foi salvo com sucesso.",
-      });
-      
       const updatedPlans = await getAllPlans();
       setSavedPlans(updatedPlans);
       
       await refreshPlans();
+      showAlert(
+        "Plano salvo", 
+        `O plano "${plan.title}" foi salvo com sucesso.`,
+        "success"
+      );
       return plan;
     } catch (error) {
-      toast({
-        title: "Erro ao salvar",
-        description: "Não foi possível salvar o plano. Tente novamente.",
-        variant: "destructive",
-      });
+      showAlert(
+        "Erro ao salvar", 
+        "Não foi possível salvar o plano. Tente novamente.",
+        "error"
+      );
       return null;
     }
   };
@@ -167,19 +203,20 @@ export function PlanProvider({ children }: { children: ReactNode }) {
       const updatedPlans = await getAllPlans();
       setSavedPlans(updatedPlans);
       
-      toast({
-        title: "Plano carregado",
-        description: `Uma cópia do plano "${cleanTitle}" foi criada.`,
-      });
+      showAlert(
+        "Plano carregado",
+        `Uma cópia do plano "${cleanTitle}" foi criada.`,
+        "success"
+      );
       
       return newPlan;
     } catch (error) {
       console.error('Error selecting plan:', error);
-      toast({
-        title: "Erro ao carregar plano",
-        description: "Não foi possível carregar o plano selecionado. Tente novamente.",
-        variant: "destructive",
-      });
+      showAlert(
+        "Erro ao carregar plano",
+        "Não foi possível carregar o plano selecionado. Tente novamente.",
+        "error"
+      );
       return null;
     }
   };
@@ -189,19 +226,20 @@ export function PlanProvider({ children }: { children: ReactNode }) {
       setPlan(selectedPlan);
       setCurrentStep(0);
       
-      toast({
-        title: "Plano aberto",
-        description: `O plano "${selectedPlan.title}" foi aberto com sucesso.`,
-      });
+      showAlert(
+        "Plano aberto",
+        `O plano "${selectedPlan.title}" foi aberto com sucesso.`,
+        "success"
+      );
       
       return selectedPlan;
     } catch (error) {
       console.error('Error opening plan:', error);
-      toast({
-        title: "Erro ao abrir plano",
-        description: "Não foi possível abrir o plano selecionado. Tente novamente.",
-        variant: "destructive",
-      });
+      showAlert(
+        "Erro ao abrir plano",
+        "Não foi possível abrir o plano selecionado. Tente novamente.",
+        "error"
+      );
       return null;
     }
   };
@@ -209,32 +247,34 @@ export function PlanProvider({ children }: { children: ReactNode }) {
   const handleExportPlan = () => {
     try {
       exportAsTxt(plan);
-      toast({
-        title: "Plano exportado",
-        description: "Seu plano de ensino foi exportado como arquivo de texto.",
-      });
+      showAlert(
+        "Plano exportado",
+        "Seu plano de ensino foi exportado como arquivo de texto.",
+        "success"
+      );
     } catch (error) {
-      toast({
-        title: "Erro ao exportar",
-        description: "Não foi possível exportar o plano. Tente novamente.",
-        variant: "destructive",
-      });
+      showAlert(
+        "Erro ao exportar",
+        "Não foi possível exportar o plano. Tente novamente.",
+        "error"
+      );
     }
   };
 
   const handleExportPlanAsPdf = () => {
     try {
       exportAsPdf(plan);
-      toast({
-        title: "Plano exportado",
-        description: "Seu plano de ensino foi exportado como arquivo PDF.",
-      });
+      showAlert(
+        "Plano exportado",
+        "Seu plano de ensino foi exportado como arquivo PDF.",
+        "success"
+      );
     } catch (error) {
-      toast({
-        title: "Erro ao exportar",
-        description: "Não foi possível exportar o plano como PDF. Tente novamente.",
-        variant: "destructive",
-      });
+      showAlert(
+        "Erro ao exportar",
+        "Não foi possível exportar o plano como PDF. Tente novamente.",
+        "error"
+      );
     }
   };
 
@@ -359,20 +399,21 @@ export function PlanProvider({ children }: { children: ReactNode }) {
         lastUpdated: Date.now() 
       });
       
-      toast({
-        title: "Título atualizado",
-        description: "O título do plano foi atualizado com sucesso.",
-      });
+      showAlert(
+        "Título atualizado",
+        "O título do plano foi atualizado com sucesso.",
+        "success"
+      );
       
       const plans = await getAllPlans();
       setSavedPlans(plans);
     } catch (error) {
       console.error("Error renaming plan:", error);
-      toast({
-        title: "Erro ao renomear",
-        description: "Não foi possível atualizar o título do plano. Tente novamente.",
-        variant: "destructive",
-      });
+      showAlert(
+        "Erro ao renomear",
+        "Não foi possível atualizar o título do plano. Tente novamente.",
+        "error"
+      );
       throw error;
     }
   };
@@ -403,10 +444,11 @@ export function PlanProvider({ children }: { children: ReactNode }) {
       const updatedPlans = await getAllPlans();
       setSavedPlans(updatedPlans);
       
-      toast({
-        title: "Plano copiado",
-        description: `Uma cópia do plano "${cleanTitle}" foi criada.`,
-      });
+      showAlert(
+        "Plano copiado",
+        `Uma cópia do plano "${cleanTitle}" foi criada.`,
+        "success"
+      );
       
       setPlan(newPlan);
       
@@ -414,11 +456,11 @@ export function PlanProvider({ children }: { children: ReactNode }) {
       return newPlan;
     } catch (error) {
       console.error('Error copying plan:', error);
-      toast({
-        title: "Erro ao copiar plano",
-        description: "Não foi possível criar uma cópia do plano. Tente novamente.",
-        variant: "destructive",
-      });
+      showAlert(
+        "Erro ao copiar plano",
+        "Não foi possível criar uma cópia do plano. Tente novamente.",
+        "error"
+      );
       return null;
     }
   };

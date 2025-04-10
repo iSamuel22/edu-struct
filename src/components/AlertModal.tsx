@@ -1,80 +1,116 @@
 import React from 'react';
-import { AlertCircle, AlertTriangle } from 'lucide-react';
+import { AlertCircle, CheckCircle, Info, XCircle, X } from 'lucide-react';
+import { motion } from 'framer-motion';
+
+export type AlertType = 'info' | 'success' | 'warning' | 'error';
 
 interface AlertModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: () => void;
   title: string;
   message: string;
+  type?: AlertType;
+  onConfirm?: () => void;
   confirmText?: string;
   cancelText?: string;
-  type?: 'warning' | 'info' | 'danger';
+  showCancel?: boolean;
 }
 
 const AlertModal: React.FC<AlertModalProps> = ({
   isOpen,
   onClose,
-  onConfirm,
   title,
   message,
-  confirmText = "Confirmar",
-  cancelText = "Cancelar",
-  type = "warning"
+  type = 'info',
+  onConfirm,
+  confirmText = 'OK',
+  cancelText = 'Cancelar',
+  showCancel = false
 }) => {
   if (!isOpen) return null;
 
-  const handleConfirm = () => {
-    onConfirm();
-    onClose();
+  const getIcon = () => {
+    switch (type) {
+      case 'success':
+        return <CheckCircle className="h-6 w-6 text-emerald-500" />;
+      case 'warning':
+        return <AlertCircle className="h-6 w-6 text-amber-500" />;
+      case 'error':
+        return <XCircle className="h-6 w-6 text-destructive" />;
+      default:
+        return <Info className="h-6 w-6 text-primary" />;
+    }
+  };
+
+  const getHeaderBg = () => {
+    switch (type) {
+      case 'success':
+        return 'bg-emerald-50';
+      case 'warning':
+        return 'bg-amber-50';
+      case 'error':
+        return 'bg-red-50';
+      default:
+        return 'bg-primary/5';
+    }
+  };
+
+  const getButtonClass = () => {
+    switch (type) {
+      case 'success':
+        return 'bg-emerald-500 hover:bg-emerald-600 text-white';
+      case 'warning':
+        return 'bg-amber-500 hover:bg-amber-600 text-white';
+      case 'error':
+        return 'btn-destructive';
+      default:
+        return 'btn-primary';
+    }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-      <div className="bg-background rounded-lg shadow-lg w-full max-w-md animate-scale-in overflow-hidden">
-        <div className={`px-6 py-4 flex items-center gap-3 ${
-          type === 'danger' 
-            ? 'bg-destructive/10 text-destructive' 
-            : type === 'info' 
-              ? 'bg-blue-500/10 text-blue-500' 
-              : 'bg-amber-500/10 text-amber-500'
-        }`}>
-          {type === 'danger' ? (
-            <AlertCircle className="h-5 w-5" />
-          ) : type === 'info' ? (
-            <AlertCircle className="h-5 w-5" />
-          ) : (
-            <AlertTriangle className="h-5 w-5" />
-          )}
-          <h3 className="text-lg font-medium">{title}</h3>
-        </div>
-
-        <div className="p-6">
-          <p className="text-foreground/80">{message}</p>
-        </div>
-
-        <div className="px-6 py-4 bg-muted/30 flex items-center justify-end gap-2">
-          <button
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <motion.div 
+        className="bg-background rounded-lg w-full max-w-md shadow-xl animate-scale-in overflow-hidden"
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.9, opacity: 0 }}
+        transition={{ type: "spring", damping: 20, stiffness: 300 }}
+      >
+        <div className={`${getHeaderBg()} p-4 flex items-start gap-3`}>
+          {getIcon()}
+          <div className="flex-1">
+            <h3 className="text-lg font-semibold">{title}</h3>
+            <p className="text-sm text-muted-foreground">{message}</p>
+          </div>
+          <button 
             onClick={onClose}
-            className="btn btn-ghost text-sm"
+            className="text-muted-foreground hover:text-foreground transition-colors rounded-full p-1 hover:bg-black/5"
           >
-            {cancelText}
+            <X size={18} />
           </button>
-          
-          <button
-            onClick={handleConfirm}
-            className={`btn text-sm ${
-              type === 'danger' 
-                ? 'btn-destructive' 
-                : type === 'info'
-                  ? 'btn-primary'
-                  : 'btn-warning'
-            }`}
+        </div>
+        
+        <div className="p-4 flex justify-end gap-2">
+          {showCancel && (
+            <button 
+              onClick={onClose} 
+              className="btn btn-ghost"
+            >
+              {cancelText}
+            </button>
+          )}
+          <button 
+            onClick={() => {
+              if (onConfirm) onConfirm();
+              else onClose();
+            }} 
+            className={`btn ${getButtonClass()}`}
           >
             {confirmText}
           </button>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 };
