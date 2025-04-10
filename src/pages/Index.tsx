@@ -211,7 +211,7 @@ const PlanContent = () => {
           savedPlans={savedPlans}
           onNewPlan={handleNewPlanFromDashboard}
           onLoadPlan={onLoadPlan}
-          onSelectPlan={handleSelectPlanWithScroll} // Usar a função que abre diretamente
+          onSelectPlan={handleSelectPlanWithScroll}
           isLoading={isLoadingPlans} // Passar o estado de carregamento
         />
       ) : (

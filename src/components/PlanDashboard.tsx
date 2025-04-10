@@ -122,13 +122,13 @@ const PlanDashboard: React.FC<PlanDashboardProps> = ({
                 Comece do zero e crie um novo plano de ensino completo.
               </p>
               <motion.button
-                className="btn btn-primary w-full"
+                className="btn btn-primary w-full flex items-center justify-center gap-2"
                 onClick={onNewPlan}
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
               >
                 <Plus size={18} />
-                Novo Plano
+                <span>Novo Plano</span>
               </motion.button>
             </motion.div>
             
@@ -148,13 +148,13 @@ const PlanDashboard: React.FC<PlanDashboardProps> = ({
                 Acesse seus planos salvos anteriormente.
               </p>
               <motion.button
-                className="btn btn-outline-primary w-full"
+                className="btn btn-outline-primary w-full flex items-center justify-center gap-2"
                 onClick={onLoadPlan}
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
               >
                 <FileText size={18} />
-                Ver Todos os Planos
+                <span>Ver Todos os Planos</span>
               </motion.button>
             </motion.div>
           </div>

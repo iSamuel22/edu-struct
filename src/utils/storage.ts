@@ -194,7 +194,7 @@ export const savePlan = async (plan: TeachingPlan): Promise<void> => {
 };
 
 // Get all saved plans - versão otimizada
-export const getAllPlans = async (): Promise<TeachingPlan[]> => {
+export const getAllPlans = async (forceRefresh = false): Promise<TeachingPlan[]> => {
   try {
     console.time('getAllPlans');
     const currentUser = auth.currentUser;
@@ -203,21 +203,20 @@ export const getAllPlans = async (): Promise<TeachingPlan[]> => {
       return [];
     }
 
-    console.log(`getAllPlans: Fetching plans for user ${currentUser.uid}`);
-    
-    // Cria uma referência de cache para evitar buscar os mesmos dados repetidamente
     const cacheKey = `plans_${currentUser.uid}`;
     const cachedPlans = sessionStorage.getItem(cacheKey);
     const lastFetch = sessionStorage.getItem(`${cacheKey}_timestamp`);
     
-    // Usa cache se existir e tiver menos de 30 segundos
-    if (cachedPlans && lastFetch && (Date.now() - parseInt(lastFetch)) < 30000) {
+    // Usar cache apenas se não estiver forçando atualização
+    if (!forceRefresh && cachedPlans && lastFetch && (Date.now() - parseInt(lastFetch)) < 30000) {
       console.log('getAllPlans: Using cached plans data');
       console.timeEnd('getAllPlans');
       return JSON.parse(cachedPlans);
     }
 
-    // Otimiza a consulta para buscar apenas campos essenciais primeiro
+    console.log(`getAllPlans: Fetching fresh plans for user ${currentUser.uid}`);
+    
+    // Consultar os planos no Firestore
     const plansRef = collection(db, 'teachingPlans');
     const q = query(plansRef, where('userId', '==', currentUser.uid));
     const querySnapshot = await getDocs(q);
@@ -227,7 +226,7 @@ export const getAllPlans = async (): Promise<TeachingPlan[]> => {
       ...doc.data()
     })) as TeachingPlan[];
     
-    // Armazena no cache
+    // Atualizar o cache
     sessionStorage.setItem(cacheKey, JSON.stringify(plans));
     sessionStorage.setItem(`${cacheKey}_timestamp`, Date.now().toString());
     
@@ -270,7 +269,6 @@ export const deletePlan = async (id: string): Promise<boolean> => {
   try {
     console.log(`Attempting to delete plan with ID: ${id}`);
     
-    // Verificar login do usuário
     const currentUser = auth.currentUser;
     if (!currentUser) {
       console.error('No user is currently logged in');
@@ -296,20 +294,20 @@ export const deletePlan = async (id: string): Promise<boolean> => {
     }
     
     // Excluir o plano
-    console.log(`Deleting plan document from Firestore: ${id}`);
     await deleteDoc(planRef);
     
-    // Verificar se a exclusão foi bem-sucedida
-    const checkDoc = await getDoc(planRef);
-    if (checkDoc.exists()) {
-      console.error('Plan still exists after deletion attempt');
-      return false;
-    }
+    // Limpar cache para forçar uma atualização
+    const cacheKey = `plans_${currentUser.uid}`;
+    sessionStorage.removeItem(cacheKey);
+    sessionStorage.removeItem(`${cacheKey}_timestamp`);
     
     console.log(`Successfully deleted plan with ID: ${id}`);
     return true;
   } catch (error) {
     console.error('Error deleting plan:', error);
+    if (error instanceof Error) {
+      console.error('Error message:', error.message);
+    }
     return false;
   }
 };
