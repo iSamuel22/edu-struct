@@ -193,24 +193,50 @@ export const savePlan = async (plan: TeachingPlan): Promise<void> => {
   }
 };
 
-// Get all saved plans
+// Get all saved plans - versão otimizada
 export const getAllPlans = async (): Promise<TeachingPlan[]> => {
   try {
+    console.time('getAllPlans');
     const currentUser = auth.currentUser;
     if (!currentUser) {
+      console.log('getAllPlans: No user logged in');
       return [];
     }
 
+    console.log(`getAllPlans: Fetching plans for user ${currentUser.uid}`);
+    
+    // Cria uma referência de cache para evitar buscar os mesmos dados repetidamente
+    const cacheKey = `plans_${currentUser.uid}`;
+    const cachedPlans = sessionStorage.getItem(cacheKey);
+    const lastFetch = sessionStorage.getItem(`${cacheKey}_timestamp`);
+    
+    // Usa cache se existir e tiver menos de 30 segundos
+    if (cachedPlans && lastFetch && (Date.now() - parseInt(lastFetch)) < 30000) {
+      console.log('getAllPlans: Using cached plans data');
+      console.timeEnd('getAllPlans');
+      return JSON.parse(cachedPlans);
+    }
+
+    // Otimiza a consulta para buscar apenas campos essenciais primeiro
     const plansRef = collection(db, 'teachingPlans');
     const q = query(plansRef, where('userId', '==', currentUser.uid));
     const querySnapshot = await getDocs(q);
     
-    return querySnapshot.docs.map(doc => ({
+    const plans = querySnapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
     })) as TeachingPlan[];
+    
+    // Armazena no cache
+    sessionStorage.setItem(cacheKey, JSON.stringify(plans));
+    sessionStorage.setItem(`${cacheKey}_timestamp`, Date.now().toString());
+    
+    console.log(`getAllPlans: Retrieved ${plans.length} plans`);
+    console.timeEnd('getAllPlans');
+    return plans;
   } catch (error) {
     console.error('Error retrieving plans:', error);
+    console.timeEnd('getAllPlans');
     return [];
   }
 };

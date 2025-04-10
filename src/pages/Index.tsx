@@ -54,8 +54,8 @@ const PlanContent = () => {
     handleNewPlan,
     handleSavePlan,
     handleLoadPlan,
-    handleSelectPlan, // Para criar cópia
-    handleOpenPlan, // Para abrir diretamente
+    handleSelectPlan,
+    handleOpenPlan,
     handleDeletePlan,
     confirmDeletePlan,
     handleExportPlan,
@@ -63,7 +63,8 @@ const PlanContent = () => {
     handleCopyPlan,
     savedPlans,
     canDeletePlan,
-    handleRenamePlan
+    handleRenamePlan,
+    isLoadingPlans // Novo estado para controlar carregamento
   } = usePlan();
 
   const {
@@ -211,6 +212,7 @@ const PlanContent = () => {
           onNewPlan={handleNewPlanFromDashboard}
           onLoadPlan={onLoadPlan}
           onSelectPlan={handleSelectPlanWithScroll} // Usar a função que abre diretamente
+          isLoading={isLoadingPlans} // Passar o estado de carregamento
         />
       ) : (
         <main className="container max-w-4xl mx-auto px-4">

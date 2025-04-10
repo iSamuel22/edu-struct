@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Save } from 'lucide-react';
+import { X } from 'lucide-react';
 import { TeachingPlan } from '@/utils/storage';
 
 interface PlanTitleModalProps {
@@ -71,21 +71,29 @@ const PlanTitleModal: React.FC<PlanTitleModalProps> = ({
             />
           </div>
           
-          <div className="flex items-center justify-between pt-2">
-            <span className="text-xs text-muted-foreground">
-              Nome atual: <span className="font-medium">{plan.title}</span>
-            </span>
+          <div className="flex items-center justify-end gap-3 pt-2">
+            <button
+              type="button"
+              className="btn btn-ghost"
+              onClick={onClose}
+              disabled={isLoading}
+            >
+              Cancelar
+            </button>
             <button
               type="submit"
-              className="btn btn-primary flex items-center gap-2"
-              disabled={isLoading || !title.trim() || title === plan.title}
+              className="btn btn-primary"
+              disabled={isLoading || !title.trim()}
             >
               {isLoading ? (
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-              ) : (
-                <Save size={16} />
-              )}
-              <span>Salvar</span>
+                <span className="flex items-center gap-2">
+                  <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                  Salvando...
+                </span>
+              ) : "Salvar"}
             </button>
           </div>
         </form>

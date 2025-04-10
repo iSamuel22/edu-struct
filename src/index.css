@@ -33,6 +33,9 @@
     --ring: 222.2 84% 4.9%;
 
     --radius: 0.75rem;
+
+    --primary-rgb: 14, 165, 233;
+    --accent-rgb: 229, 231, 235;
   }
 
   * {
@@ -96,6 +99,25 @@
   
   .hide-scrollbar::-webkit-scrollbar {
     display: none;
+  }
+
+  /* Custom scrollbar styles */
+  .custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: var(--accent) transparent;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: var(--accent);
+    border-radius: 20px;
   }
 }
 
@@ -259,6 +281,25 @@
   
   .badge-error {
     @apply bg-destructive/10 text-destructive;
+  }
+
+  /* Floating animation */
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+
+  .float-animation {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  /* Outline primary button */
+  .btn-outline-primary {
+    @apply border border-primary/60 text-primary hover:bg-primary/10 font-medium px-4 py-2 rounded-md flex items-center justify-center gap-2 transition-colors;
   }
 }
 

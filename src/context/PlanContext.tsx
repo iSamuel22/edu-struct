@@ -10,6 +10,7 @@ import {
 import { auth } from '@/config/firebase';
 import { useToast } from '../hooks/use-toast';
 import { exportAsPdf, exportAsTxt } from '@/utils/export';
+import { onAuthStateChanged } from 'firebase/auth';
 
 type PlanContextType = {
   plan: TeachingPlan;
@@ -33,22 +34,49 @@ type PlanContextType = {
   canDeletePlan: boolean;
   handleRenamePlan: (newTitle: string) => Promise<void>;
   handleCopyPlan: () => Promise<TeachingPlan | null>;
+  isLoadingPlans: boolean;
 };
 
 const PlanContext = createContext<PlanContextType | undefined>(undefined);
 
 export function PlanProvider({ children }: { children: ReactNode }) {
-  const { toast } = useToast();
   const [plan, setPlan] = useState<TeachingPlan>(createEmptyPlan());
-  const [currentStep, setCurrentStep] = useState(0);
   const [savedPlans, setSavedPlans] = useState<TeachingPlan[]>([]);
+  const [currentStep, setCurrentStep] = useState(0);
+  const { toast } = useToast();
+  const [isLoadingPlans, setIsLoadingPlans] = useState(true);
+  const [lastLoadedUserId, setLastLoadedUserId] = useState<string | null>(null);
   
   useEffect(() => {
-    const loadSavedPlans = async () => {
-      const plans = await getAllPlans();
-      setSavedPlans(plans);
-    };
-    loadSavedPlans();
+    setSavedPlans([]);
+    setIsLoadingPlans(true);
+    
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        if (lastLoadedUserId !== user.uid) {
+          console.log(`User authenticated: ${user.uid}, loading plans...`);
+          setLastLoadedUserId(user.uid);
+          
+          try {
+            const userPlans = await getAllPlans();
+            console.log(`Loaded ${userPlans.length} plans for user ${user.uid}`);
+            setSavedPlans(userPlans);
+          } catch (error) {
+            console.error("Error loading plans:", error);
+          } finally {
+            setIsLoadingPlans(false);
+          }
+        }
+      } else {
+        console.log('No user logged in, clearing plans');
+        setSavedPlans([]);
+        setPlan(createEmptyPlan());
+        setLastLoadedUserId(null);
+        setIsLoadingPlans(false);
+      }
+    });
+
+    return () => unsubscribe();
   }, []);
   
   const canDeletePlan = plan.id !== createEmptyPlan().id;
@@ -102,7 +130,6 @@ export function PlanProvider({ children }: { children: ReactNode }) {
 
   const handleSelectPlan = async (selectedPlan: TeachingPlan) => {
     try {
-      // Remove any existing "(Cópia)" suffixes before adding a new one
       let cleanTitle = selectedPlan.title;
       if (cleanTitle.includes(" (Cópia)")) {
         cleanTitle = cleanTitle.replace(/\s\(Cópia\)+/g, "");
@@ -116,14 +143,11 @@ export function PlanProvider({ children }: { children: ReactNode }) {
         updatedAt: new Date().toISOString()
       };
       
-      // Primeiro salvar o plano no Firestore para garantir que ele possa ser excluído
       await savePlan(newPlan);
       
-      // Depois atualizar o estado local
       setPlan(newPlan);
       setCurrentStep(0);
       
-      // Atualizar a lista de planos
       const updatedPlans = await getAllPlans();
       setSavedPlans(updatedPlans);
       
@@ -144,10 +168,8 @@ export function PlanProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // Adicionar nova função para abrir um plano sem criar cópia
   const handleOpenPlan = (selectedPlan: TeachingPlan) => {
     try {
-      // Simplesmente definir o plano selecionado como o plano atual
       setPlan(selectedPlan);
       setCurrentStep(0);
       
@@ -208,7 +230,6 @@ export function PlanProvider({ children }: { children: ReactNode }) {
     try {
       console.log("Deleting plan with ID:", plan.id);
       
-      // Verifique se estamos tentando excluir um plano vazio
       if (plan.id === createEmptyPlan().id) {
         toast({
           title: "Erro ao excluir",
@@ -218,7 +239,6 @@ export function PlanProvider({ children }: { children: ReactNode }) {
         return false;
       }
       
-      // Garantir que o usuário atual esteja logado
       const currentUser = auth.currentUser;
       if (!currentUser) {
         toast({
@@ -229,17 +249,14 @@ export function PlanProvider({ children }: { children: ReactNode }) {
         return false;
       }
       
-      // Chamar a função deletePlan de utils/storage
       const success = await deletePlan(plan.id);
       
       if (success) {
         console.log("Plan deleted successfully!");
         
-        // Criar um novo plano vazio após a exclusão
         setPlan(createEmptyPlan());
         setCurrentStep(0);
         
-        // Atualizar a lista de planos salvos
         const updatedPlans = await getAllPlans();
         setSavedPlans(updatedPlans);
         
@@ -335,14 +352,12 @@ export function PlanProvider({ children }: { children: ReactNode }) {
         throw new Error("O título não pode estar vazio");
       }
 
-      // Update the title in the state first
       setPlan(prevPlan => ({ 
         ...prevPlan, 
         title: newTitle,
         lastUpdated: Date.now()
       }));
 
-      // Then save to database
       await savePlan({ 
         ...plan, 
         title: newTitle,
@@ -354,7 +369,6 @@ export function PlanProvider({ children }: { children: ReactNode }) {
         description: "O título do plano foi atualizado com sucesso.",
       });
       
-      // Refresh the saved plans list
       const plans = await getAllPlans();
       setSavedPlans(plans);
     } catch (error) {
@@ -372,13 +386,11 @@ export function PlanProvider({ children }: { children: ReactNode }) {
     try {
       console.log("Starting plan copy process for plan:", plan.id);
       
-      // Remove any existing "(Cópia)" suffixes before adding a new one
       let cleanTitle = plan.title;
       if (cleanTitle.includes(" (Cópia)")) {
         cleanTitle = cleanTitle.replace(/\s\(Cópia\)+/g, "");
       }
       
-      // Criar uma cópia do plano atual com um novo ID
       const newId = Date.now().toString();
       const planCopy = {
         ...plan,
@@ -390,11 +402,9 @@ export function PlanProvider({ children }: { children: ReactNode }) {
       
       console.log("Created copy with new ID:", newId);
       
-      // Salvar a cópia no Firestore
       await savePlan(planCopy);
       console.log("Copy saved to Firestore");
       
-      // Atualizar a lista de planos
       const updatedPlans = await getAllPlans();
       setSavedPlans(updatedPlans);
       
@@ -403,7 +413,6 @@ export function PlanProvider({ children }: { children: ReactNode }) {
         description: `Uma cópia do plano "${cleanTitle}" foi criada.`,
       });
       
-      // Definir o plano atual como a cópia
       setPlan(planCopy);
       
       return planCopy;
@@ -441,6 +450,7 @@ export function PlanProvider({ children }: { children: ReactNode }) {
       canDeletePlan,
       handleRenamePlan,
       handleCopyPlan,
+      isLoadingPlans,
     }}>
       {children}
     </PlanContext.Provider>
