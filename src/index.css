@@ -41,35 +41,36 @@
   }
 
   body {
-    @apply bg-background text-foreground antialiased;
+    @apply bg-gradient-to-b from-background to-secondary/30 text-foreground antialiased min-h-screen;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 
-  /* Custom glassmorphism effect */
+  /* Custom glassmorphism effect with improved shadows */
   .glass {
-    @apply bg-white/70 backdrop-blur-md border border-white/20 shadow-sm;
+    @apply bg-white/80 backdrop-blur-md border border-white/30 shadow-lg;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
   }
   
   .glass-dark {
-    @apply bg-foreground/5 backdrop-blur-md border border-foreground/10 shadow-sm;
+    @apply bg-foreground/10 backdrop-blur-md border border-foreground/15 shadow-md;
   }
   
-  /* Navigation styles */
+  /* Navigation styles with subtle animation */
   .nav-indicator {
     @apply w-2 h-2 rounded-full bg-muted transition-all duration-300;
   }
   
   .nav-indicator.active {
-    @apply w-8 bg-primary;
+    @apply w-8 bg-primary scale-105;
   }
   
-  /* Input focus styles */
+  /* Enhanced input focus styles */
   input:focus, textarea:focus, select:focus {
-    @apply outline-none ring-2 ring-primary/20 ring-offset-2 ring-offset-background;
-    transition: all 0.2s ease;
+    @apply outline-none ring-2 ring-primary/30 ring-offset-2 ring-offset-background;
+    transition: all 0.3s ease;
   }
   
-  /* Form transition styles */
+  /* Form transition styles with improved animations */
   .form-step {
     @apply transition-all duration-500 ease-in-out;
   }
@@ -81,50 +82,194 @@
   .form-step.exiting {
     @apply animate-slide-out;
   }
+  
+  /* Improved headings */
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold tracking-tight text-foreground;
+  }
+  
+  /* Hide scrollbar but keep functionality */
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 @layer components {
+  /* Enhanced button styles with subtle hover effects */
   .btn {
-    @apply px-4 py-2 rounded-md font-medium transition-all duration-200;
+    @apply px-4 py-2 rounded-md font-medium transition-all duration-200 relative overflow-hidden;
   }
   
   .btn-primary {
-    @apply bg-primary text-primary-foreground hover:bg-primary/90;
+    @apply bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm hover:shadow-md active:scale-95;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
   }
   
   .btn-secondary {
-    @apply bg-secondary text-secondary-foreground hover:bg-secondary/80;
+    @apply bg-secondary text-secondary-foreground hover:bg-secondary/80 shadow-sm;
   }
   
   .btn-outline {
-    @apply border border-input bg-background hover:bg-accent hover:text-accent-foreground;
+    @apply border border-input bg-background hover:bg-accent/50 hover:text-accent-foreground;
   }
   
   .btn-ghost {
-    @apply hover:bg-accent hover:text-accent-foreground;
+    @apply hover:bg-accent/50 hover:text-accent-foreground;
+  }
+
+  .btn-destructive {
+    @apply bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-sm;
   }
   
+  /* Input field with subtle depth effect */
   .input-field {
-    @apply w-full p-3 rounded-md border border-input bg-background;
+    @apply w-full p-3 rounded-md border border-input bg-background shadow-sm transition-all duration-200;
+  }
+  
+  .input-field:focus {
+    @apply border-primary/30 shadow-md;
   }
   
   .input-label {
-    @apply text-sm font-medium text-muted-foreground mb-1 block;
+    @apply text-sm font-medium text-muted-foreground mb-1.5 block;
   }
   
+  /* Form sections with depth and subtle hover effect */
   .form-section {
-    @apply glass p-6 rounded-xl mb-6;
+    @apply glass p-6 rounded-xl mb-8 transition-all duration-300 hover:shadow-lg;
+  }
+  
+  /* Card styles for content blocks */
+  .content-card {
+    @apply bg-card rounded-lg border border-border p-4 shadow-sm hover:shadow-md transition-all duration-300;
+  }
+  
+  /* Active section highlight */
+  .active-section {
+    @apply border-l-4 border-primary pl-3 py-1;
+  }
+  
+  /* Animate scale in utility */
+  .animate-scale-in {
+    animation: scaleIn 0.2s ease-out forwards;
+  }
+  
+  @keyframes scaleIn {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+  
+  /* Subtle fade-in animation */
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease-out forwards;
+  }
+  
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  
+  /* Slide in/out animations */
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes slideOut {
+    from {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    to {
+      opacity: 0;
+      transform: translateY(-20px);
+    }
+  }
+
+  .animate-slide-in {
+    animation: slideIn 0.3s ease-out forwards;
+  }
+
+  .animate-slide-out {
+    animation: slideOut 0.3s ease-in forwards;
+  }
+  
+  /* Active scale effect - fixed the error by using scale-95 */
+  .active-scale-98 {
+    @apply active:scale-95 transition-transform;
+  }
+  
+  /* Modern divider */
+  .divider {
+    @apply h-px w-full bg-gradient-to-r from-transparent via-border to-transparent my-6;
+  }
+  
+  /* Card with hover effect */
+  .hover-card {
+    @apply bg-card rounded-lg border border-border p-4 transition-all duration-300;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  }
+  
+  .hover-card:hover {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    transform: translateY(-2px);
+  }
+  
+  /* Badge styles */
+  .badge {
+    @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium;
+  }
+  
+  .badge-primary {
+    @apply bg-primary/10 text-primary;
+  }
+  
+  .badge-secondary {
+    @apply bg-secondary text-secondary-foreground;
+  }
+  
+  .badge-success {
+    @apply bg-emerald-100 text-emerald-800;
+  }
+  
+  .badge-warning {
+    @apply bg-amber-100 text-amber-800;
+  }
+  
+  .badge-error {
+    @apply bg-destructive/10 text-destructive;
   }
 }
 
-/* Adicionando regras de mídia query para responsividade */
+/* Responsive design improvements */
 @media (max-width: 768px) {
   .btn {
     @apply px-3 py-2 text-sm;
   }
 
   .input-field {
-    @apply p-2;
+    @apply p-2.5;
   }
 
   .form-section {
@@ -134,4 +279,78 @@
   .input-label {
     @apply text-xs mb-0.5;
   }
+  
+  /* Stack items on mobile */
+  .stack-mobile {
+    @apply flex-col;
+  }
+  
+  /* Adjust header on mobile */
+  header {
+    @apply px-3 py-3;
+  }
+  
+  /* Reduce card padding on mobile */
+  .content-card {
+    @apply p-3;
+  }
+}
+
+/* Hover effects for interactive elements */
+.hover-lift {
+  @apply transition-transform hover:-translate-y-0.5 hover:shadow-md;
+}
+
+/* Improved scrollbar styles for desktop */
+@media (min-width: 769px) {
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    @apply bg-secondary/50 rounded-full;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    @apply bg-primary/30 rounded-full hover:bg-primary/50 transition-colors;
+  }
+}
+
+/* Glassmorphism panel */
+.glass-panel {
+  @apply bg-white/90 backdrop-blur-md border border-white/30 rounded-lg shadow-lg;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05), 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+/* Enhanced table styles */
+.table-modern {
+  @apply w-full border-collapse;
+}
+
+.table-modern th {
+  @apply bg-muted px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider;
+}
+
+.table-modern td {
+  @apply px-4 py-3 border-t border-border;
+}
+
+.table-modern tr {
+  @apply hover:bg-muted/50 transition-colors;
+}
+
+/* Focus outline for accessibility */
+.focus-ring {
+  @apply focus:outline-none focus:ring-2 focus:ring-primary/40 focus:ring-offset-2;
+}
+
+/* Section headers with accent line */
+.section-header {
+  @apply relative pb-2 mb-4 font-semibold;
+}
+
+.section-header::after {
+  content: '';
+  @apply absolute bottom-0 left-0 h-0.5 w-12 bg-primary rounded-full;
 }

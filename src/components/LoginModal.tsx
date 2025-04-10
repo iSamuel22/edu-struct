@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, LogIn } from "lucide-react";
+import { X, LogIn, Eye, EyeOff } from "lucide-react";
 import { useToast } from '@/hooks/use-toast';
 
 interface LoginModalProps {
@@ -12,6 +12,7 @@ interface LoginModalProps {
 const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin, onSwitchToRegister }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const { toast } = useToast();
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -30,8 +31,8 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin, onSwi
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className="bg-background rounded-lg w-full max-w-md shadow-xl animate-scale-in p-6">
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-background rounded-lg w-full max-w-md shadow-xl animate-scale-in p-4 sm:p-6">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold">Login</h2>
           <button
@@ -58,19 +59,29 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin, onSwi
           
           <div>
             <label htmlFor="password" className="input-label">Senha</label>
-            <input
-              id="password"
-              type="password"
-              className="input-field"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Digite sua senha"
-            />
+            <div className="relative">
+              <input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                className="input-field pr-10"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Digite sua senha"
+              />
+              <button
+                type="button"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                onClick={() => setShowPassword(!showPassword)}
+                aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+              >
+                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </div>
           </div>
           
           <button 
             type="submit" 
-            className="btn btn-primary w-full flex items-center justify-center gap-2"
+            className="btn btn-primary w-full flex items-center justify-center gap-2 py-2.5"
           >
             <LogIn size={16} />
             <span>Entrar</span>

@@ -5,9 +5,14 @@ import LoginModal from '@/components/LoginModal';
 import RegisterModal from '@/components/RegisterModal';
 import DeletePlanModal from '@/components/DeletePlanModal';
 import PlanLoadModal from '@/components/PlanLoadModal';
+import PlanTitleModal from '@/components/PlanTitleModal';
 import WelcomeScreen from '@/components/WelcomeScreen';
+import ChecklistPanel from '@/components/ChecklistPanel';
 import { PlanProvider, usePlan } from '@/context/PlanContext';
 import { AuthProvider, useAuth } from '@/context/AuthContext';
+import { TeachingPlan } from '@/utils/storage';
+
+import { exportAsPdf, exportAsTxt } from '@/utils/export';
 
 // Import form components
 import IdentificationForm from '@/components/forms/IdentificationForm';
@@ -22,7 +27,7 @@ import VisitsForm from '@/components/forms/VisitsForm';
 import ScheduleForm from '@/components/forms/ScheduleForm';
 import BibliographyForm from '@/components/forms/BibliographyForm';
 import SignaturesForm from '@/components/forms/SignaturesForm';
-import { exportAsPdf, exportAsTxt } from '@/utils/export';
+import '@/index.css';
 
 const steps = [
   "1. Identificação",
@@ -53,7 +58,8 @@ const PlanContent = () => {
     handleExportPlan,
     handleExportPlanAsPdf,
     savedPlans,
-    canDeletePlan
+    canDeletePlan,
+    handleRenamePlan
   } = usePlan();
 
   const {
@@ -66,11 +72,14 @@ const PlanContent = () => {
     handleLogout,
     handleRegister,
     performLogin,
-    performRegistration
+    performRegistration,
+    handleUserSettings
   } = useAuth();
 
   const [isLoadModalOpen, setIsLoadModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isTitleModalOpen, setIsTitleModalOpen] = useState(false);
+  const [isChecklistOpen, setIsChecklistOpen] = useState(false);
 
   const onLoadPlan = () => {
     handleLoadPlan();
@@ -78,11 +87,11 @@ const PlanContent = () => {
   };
 
   const handleExportPdf = () => {
-    exportAsPdf(plan);
+    handleExportPlanAsPdf();
   };
 
   const handleExportTxt = () => {
-    exportAsTxt(plan);
+    handleExportPlan();
   };
 
   const onDeleteClick = () => {
@@ -95,10 +104,40 @@ const PlanContent = () => {
     setIsDeleteModalOpen(false);
   };
 
+  const onRenamePlan = () => {
+    setIsTitleModalOpen(true);
+  };
+
+  const handleRenameSubmit = async (newTitle: string) => {
+    try {
+      await handleRenamePlan(newTitle);
+      setIsTitleModalOpen(false);
+    } catch (error) {
+      console.error("Failed to rename plan:", error);
+    }
+  };
+
+  // Add this effect to scroll to top when currentStep changes
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [currentStep]);
+
+  // Create modified handlers that ensure scrolling to top
+  const handleSelectPlanWithScroll = (plan: TeachingPlan) => {
+    handleSelectPlan(plan);
+    setIsLoadModalOpen(false);
+    window.scrollTo(0, 0);
+  };
+
+  const handleNewPlanWithScroll = () => {
+    handleNewPlan();
+    window.scrollTo(0, 0);
+  };
+
   return (
     <div className="min-h-screen pb-24">
       <Header
-        onNewPlan={handleNewPlan}
+        onNewPlan={handleNewPlanWithScroll}
         onLoadPlan={onLoadPlan}
         onSavePlan={handleSavePlan}
         onExportPlan={handleExportTxt}
@@ -106,8 +145,13 @@ const PlanContent = () => {
         onLoginClick={handleLogin}
         onLogout={handleLogout}
         onDeleteClick={onDeleteClick}
+        onUserSettings={handleUserSettings}
+        onRenamePlan={onRenamePlan}
         currentUser={currentUser}
         canDelete={canDeletePlan}
+        currentPlanTitle={plan.title}
+        onToggleChecklist={() => setIsChecklistOpen(!isChecklistOpen)}
+        isChecklistVisible={isChecklistOpen}
       />
 
       {!currentUser ? (
@@ -137,6 +181,13 @@ const PlanContent = () => {
         </main>
       )}
 
+      {currentUser && (
+        <ChecklistPanel 
+          isOpen={isChecklistOpen}
+          onToggle={() => setIsChecklistOpen(!isChecklistOpen)}
+        />
+      )}
+
       <LoginModal
         isOpen={isLoginModalOpen}
         onClose={() => setIsLoginModalOpen(false)}
@@ -162,15 +213,20 @@ const PlanContent = () => {
         isOpen={isLoadModalOpen}
         onClose={() => setIsLoadModalOpen(false)}
         savedPlans={savedPlans}
-        onSelectPlan={(plan) => {
-          handleSelectPlan(plan);
-          setIsLoadModalOpen(false);
-        }}
+        onSelectPlan={handleSelectPlanWithScroll}
+      />
+
+      <PlanTitleModal
+        isOpen={isTitleModalOpen}
+        onClose={() => setIsTitleModalOpen(false)}
+        plan={plan}
+        onSave={handleRenameSubmit}
       />
     </div>
   );
 };
 
+// Componente Index corrigido - garante que os providers estejam na ordem correta
 const Index = () => {
   return (
     <AuthProvider>

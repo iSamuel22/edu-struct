@@ -3,11 +3,14 @@ import {
   User, 
   loginUser, 
   registerUser, 
-  logoutUser as logoutUserUtil
+  logoutUser as logoutUserUtil,
+  updateUserProfile,
+  deleteAccount
 } from '@/utils/auth';
 import { useToast } from '../hooks/use-toast';
 import { auth } from '@/config/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
+import UserSettingsModal from '@/components/UserSettingsModal';
 
 type AuthContextType = {
   currentUser: User | null;
@@ -16,11 +19,16 @@ type AuthContextType = {
   setIsLoginModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
   isRegisterModalOpen: boolean;
   setIsRegisterModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  isUserSettingsModalOpen: boolean;
+  setIsUserSettingsModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
   handleLogin: () => void;
   handleLogout: () => void;
   handleRegister: () => void;
+  handleUserSettings: () => void;
   performLogin: (username: string, password: string) => void;
   performRegistration: (username: string, name: string, password: string) => void;
+  updateUserInfo: (name: string, currentPassword: string, newPassword: string) => Promise<boolean>;
+  deleteUserAccount: (password: string) => Promise<boolean>;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -30,6 +38,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
+  const [isUserSettingsModalOpen, setIsUserSettingsModalOpen] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
@@ -68,19 +77,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoginModalOpen(false);
   };
 
+  const handleUserSettings = () => {
+    setIsUserSettingsModalOpen(true);
+  };
+
   const performLogin = async (username: string, password: string) => {
-    const user = await loginUser(username, password);
-    if (user) {
-      setCurrentUser(user);
-      setIsLoginModalOpen(false);
-      toast({
-        title: "Login realizado",
-        description: `Bem-vindo, ${user.name}!`,
-      });
-    } else {
+    try {
+      const user = await loginUser(username, password);
+      if (user) {
+        setCurrentUser(user);
+        setIsLoginModalOpen(false);
+        toast({
+          title: "Login realizado",
+          description: `Bem-vindo, ${user.name}!`,
+        });
+      } else {
+        toast({
+          title: "Erro de login",
+          description: "Usuário ou senha incorretos.",
+          variant: "destructive",
+        });
+      }
+    } catch (error: any) {
       toast({
         title: "Erro de login",
-        description: "Usuário ou senha incorretos.",
+        description: error.message || "Usuário ou senha incorretos.",
         variant: "destructive",
       });
     }
@@ -107,6 +128,61 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const updateUserInfo = async (name: string, currentPassword: string, newPassword: string): Promise<boolean> => {
+    try {
+      const success = await updateUserProfile(name, currentPassword, newPassword);
+      
+      if (success && currentUser) {
+        // Update the local user state with the new name
+        setCurrentUser({
+          ...currentUser,
+          name: name
+        });
+        
+        toast({
+          title: "Perfil atualizado",
+          description: "Suas informações foram atualizadas com sucesso.",
+        });
+      }
+      
+      return success;
+    } catch (error: any) {
+      console.error('Error updating user:', error);
+      toast({
+        title: "Erro ao atualizar perfil",
+        description: error.message || "Ocorreu um erro ao tentar atualizar suas informações.",
+        variant: "destructive",
+      });
+      throw error;
+    }
+  };
+
+  const deleteUserAccount = async (password: string): Promise<boolean> => {
+    try {
+      const success = await deleteAccount(password);
+      
+      if (success) {
+        setCurrentUser(null);
+        setIsUserSettingsModalOpen(false);
+        
+        toast({
+          title: "Conta excluída",
+          description: "Sua conta foi excluída com sucesso.",
+        });
+      }
+      
+      return success;
+    } catch (error: any) {
+      console.error('Error deleting account:', error);
+      toast({
+        title: "Erro ao excluir conta",
+        description: error.message || "Ocorreu um erro ao tentar excluir sua conta.",
+        variant: "destructive",
+      });
+      throw error;
+    }
+  };
+
   return (
     <AuthContext.Provider value={{
       currentUser,
@@ -115,13 +191,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setIsLoginModalOpen,
       isRegisterModalOpen,
       setIsRegisterModalOpen,
+      isUserSettingsModalOpen,
+      setIsUserSettingsModalOpen,
       handleLogin,
       handleLogout,
       handleRegister,
+      handleUserSettings,
       performLogin,
-      performRegistration
+      performRegistration,
+      updateUserInfo,
+      deleteUserAccount
     }}>
       {children}
+      <UserSettingsModal
+        isOpen={isUserSettingsModalOpen}
+        onClose={() => setIsUserSettingsModalOpen(false)}
+        currentUser={currentUser}
+        onUpdateUser={updateUserInfo}
+        onDeleteAccount={deleteUserAccount}
+      />
     </AuthContext.Provider>
   );
 }

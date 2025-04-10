@@ -22,6 +22,7 @@ type PlanContextType = {
   addItemToArray: (path: string, item: unknown) => void;
   removeItemFromArray: (path: string, index: number) => void;
   canDeletePlan: boolean;
+  handleRenamePlan: (newTitle: string) => Promise<void>;
 };
 
 const PlanContext = createContext<PlanContextType | undefined>(undefined);
@@ -47,6 +48,7 @@ export function PlanProvider({ children }: { children: ReactNode }) {
     if (confirm("Criar um novo plano? Todas as alterações não salvas serão perdidas.")) {
       setPlan(createEmptyPlan());
       setCurrentStep(0);
+      window.scrollTo(0, 0);
       toast({
         title: "Novo plano criado",
         description: "Comece preenchendo as informações de identificação.",
@@ -92,6 +94,7 @@ export function PlanProvider({ children }: { children: ReactNode }) {
   const handleSelectPlan = (selectedPlan: TeachingPlan) => {
     setPlan(selectedPlan);
     setCurrentStep(0);
+    window.scrollTo(0, 0);
     toast({
       title: "Plano carregado",
       description: `"${selectedPlan.title}" foi carregado com sucesso.`,
@@ -222,6 +225,50 @@ export function PlanProvider({ children }: { children: ReactNode }) {
     });
   };
 
+  const setCurrentStepWithScroll = (step: number) => {
+    setCurrentStep(step);
+    window.scrollTo(0, 0);
+  };
+
+  const handleRenamePlan = async (newTitle: string): Promise<void> => {
+    try {
+      if (!newTitle.trim()) {
+        throw new Error("O título não pode estar vazio");
+      }
+
+      // Update the title in the state first
+      setPlan(prevPlan => ({ 
+        ...prevPlan, 
+        title: newTitle,
+        lastUpdated: Date.now()
+      }));
+
+      // Then save to database
+      await savePlan({ 
+        ...plan, 
+        title: newTitle,
+        lastUpdated: Date.now() 
+      });
+      
+      toast({
+        title: "Título atualizado",
+        description: "O título do plano foi atualizado com sucesso.",
+      });
+      
+      // Refresh the saved plans list
+      const plans = await getAllPlans();
+      setSavedPlans(plans);
+    } catch (error) {
+      console.error("Error renaming plan:", error);
+      toast({
+        title: "Erro ao renomear",
+        description: "Não foi possível atualizar o título do plano. Tente novamente.",
+        variant: "destructive",
+      });
+      throw error;
+    }
+  };
+
   return (
     <PlanContext.Provider value={{
       plan,
@@ -229,7 +276,7 @@ export function PlanProvider({ children }: { children: ReactNode }) {
       savedPlans,
       setSavedPlans,
       currentStep,
-      setCurrentStep,
+      setCurrentStep: setCurrentStepWithScroll,
       handleNewPlan,
       handleSavePlan,
       handleLoadPlan,
@@ -241,7 +288,8 @@ export function PlanProvider({ children }: { children: ReactNode }) {
       updateField,
       addItemToArray,
       removeItemFromArray,
-      canDeletePlan
+      canDeletePlan,
+      handleRenamePlan,
     }}>
       {children}
     </PlanContext.Provider>
