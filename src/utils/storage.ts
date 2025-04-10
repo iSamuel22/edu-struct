@@ -23,11 +23,13 @@ export interface TeachingPlan {
       courseAbbreviation: string;
       professorName: string;
       siapeCode: string;
-      totalHours: number;
-      weeklyHours: number;
-      theoreticalHours: number;
-      practicalHours: number;
-      inPersonHours: number;
+      totalHours: string;
+      weeklyHours: string;
+      theoreticalHours: string;
+      practicalHours: string;
+      inPersonHours: string;
+      eixo: string;
+      distanceHours: string;
     };
     syllabus: string;
     objectives: string;
@@ -37,6 +39,8 @@ export interface TeachingPlan {
       justification: string;
       objectives: string;
       communityInvolvement: string;
+      summary: string;
+      type: string;
     };
     content: {
       byPeriod: Array<{
@@ -65,12 +69,11 @@ export interface TeachingPlan {
       complementary: string;
     };
     signatures: {
-      signatories: string;
-      date: string;
-      location: string;
-      professorName: string;
-      coordinatorName: string;
+      professorSignature: string;
+      coordinatorSignature: string;
+      componentName: string;
       courseName: string;
+      date: string;
     };
   };
 }
@@ -88,11 +91,13 @@ export const createEmptyPlan = (): TeachingPlan => {
         courseAbbreviation: "",
         professorName: "",
         siapeCode: "",
-        totalHours: 0,
-        weeklyHours: 0,
-        theoreticalHours: 0,
-        practicalHours: 0,
-        inPersonHours: 0,
+        totalHours: "",
+        weeklyHours: "",
+        theoreticalHours: "",
+        practicalHours: "",
+        inPersonHours: "",
+        eixo: "",
+        distanceHours: ""
       },
       syllabus: "",
       objectives: "",
@@ -102,6 +107,8 @@ export const createEmptyPlan = (): TeachingPlan => {
         justification: "",
         objectives: "",
         communityInvolvement: "",
+        summary: "",
+        type: "",
       },
       content: {
         byPeriod: [
@@ -138,12 +145,11 @@ export const createEmptyPlan = (): TeachingPlan => {
         complementary: "",
       },
       signatures: {
-        professorName: "",
-        coordinatorName: "",
+        professorSignature: "",
+        coordinatorSignature: "",
+        componentName: "",
         courseName: "",
-        signatories: "",
-        date: "",
-        location: ""
+        date: ""
       },
     },
   };
